@@ -1,0 +1,375 @@
+/* Layout structure consistent with other dashboards but with Student Theme */
+.layout {
+    display: flex;
+    min-height: 100vh;
+    background-color: #f8fafc;
+    /* Very Light Slate/Blue bg - cleaner than f0f9ff */
+    font-family: 'Inter', sans-serif;
+}
+
+.sidebar {
+    width: 260px;
+    background-color: #ffffff;
+    /* White Sidebar for lighter tone */
+    border-right: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    transition: width 0.3s ease;
+    z-index: 10;
+}
+
+.logoContainer {
+    height: 70px;
+    display: flex;
+    align-items: center;
+    padding: 0 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.logoText {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0284c7;
+    /* Sky Blue Primary */
+    margin-left: 0.75rem;
+    letter-spacing: -0.025em;
+}
+
+.nav {
+    flex: 1;
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    overflow-y: auto;
+}
+
+.navItem {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    color: #64748b;
+    text-decoration: none;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.navItem:hover {
+    background-color: #f0f9ff;
+    color: #0284c7;
+}
+
+.navItemActive {
+    background-color: #e0f2fe;
+    color: #0284c7;
+    font-weight: 600;
+}
+
+.mainWrapper {
+    flex: 1;
+    margin-left: 260px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    width: calc(100% - 260px);
+}
+
+.topbar {
+    height: 70px;
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 9;
+}
+
+.pageTitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1e293b;
+    letter-spacing: -0.025em;
+}
+
+.profileSection {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.iconButton {
+    padding: 0.5rem;
+    color: #64748b;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.iconButton:hover {
+    color: #0284c7;
+    background-color: #f0f9ff;
+}
+
+.content {
+    padding: 2rem;
+    flex: 1;
+    overflow-y: auto;
+    max-width: 1600px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Dashboard Specifics */
+.welcomeBanner {
+    background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
+    color: white;
+    padding: 2.5rem;
+    border-radius: 1.5rem;
+    margin-bottom: 2.5rem;
+    box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.25);
+    position: relative;
+    overflow: hidden;
+}
+
+.welcomeBanner::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 300px;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1));
+    transform: skewX(-20deg);
+}
+
+.welcomeTitle {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin-bottom: 0.75rem;
+    letter-spacing: -0.025em;
+}
+
+.cardGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        display: none;
+    }
+
+    .mainWrapper {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .content {
+        padding: 1.5rem;
+    }
+}
+
+.card {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    border: 1px solid #f1f5f9;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border-color: #bae6fd;
+}
+
+.cardIconWrapper {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    transition: transform 0.3s ease;
+}
+
+.card:hover .cardIconWrapper {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.cardTitle {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+}
+
+/* Sections */
+.sectionHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 1.5rem;
+}
+
+.sectionTitle {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    letter-spacing: -0.015em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.viewAll {
+    font-size: 0.875rem;
+    color: #0284c7;
+    cursor: pointer;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.viewAll:hover {
+    color: #0369a1;
+    text-decoration: underline;
+}
+
+/* List Items */
+.listItem {
+    background: white;
+    padding: 1.25rem;
+    border-radius: 1rem;
+    border: 1px solid #f1f5f9;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.listItem:hover {
+    border-color: #7dd3fc;
+    box-shadow: 0 4px 6px -1px rgba(224, 242, 254, 0.5);
+    background: #f8fafc;
+}
+
+.itemInfo h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 0.35rem;
+}
+
+.itemMeta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.tag {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 99px;
+    background-color: #f0f9ff;
+    color: #0284c7;
+    font-weight: 600;
+    border: 1px solid #e0f2fe;
+}
+
+.btnView {
+    padding: 0.5rem 1rem;
+    background: white;
+    color: #0284c7;
+    border: 1px solid #e0f2fe;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btnView:hover {
+    background: #0284c7;
+    color: white;
+    border-color: #0284c7;
+}
+
+/* Top Alumni Section */
+.alumniGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.alumniCard {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    text-align: center;
+    border: 1px solid #f1f5f9;
+    transition: all 0.3s ease;
+}
+
+.alumniCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border-color: #bae6fd;
+}
+
+.alumniAvatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #e0f2fe;
+    color: #0284c7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    border: 2px solid white;
+    box-shadow: 0 0 0 2px #bae6fd;
+}
+
+.alumniName {
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.25rem;
+}
+
+.alumniRole {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin-bottom: 0.1rem;
+}
+
+.alumniCompany {
+    font-size: 0.8rem;
+    color: #0284c7;
+    font-weight: 600;
+}
