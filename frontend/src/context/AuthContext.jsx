@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { authService } from '../services/authService';
 
 const AuthContext = createContext(null);
 
@@ -15,25 +16,15 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
     }, []);
 
-    const login = (userData) => {
-        // Determine connection based on email for testing (MOCK LOGIC)
-        let role = 'Student'; // Default
-        const email = userData.email.toLowerCase();
-
-        if (email.includes('admin')) role = 'Admin';
-        else if (email.includes('staff')) role = 'Staff';
-        else if (email.includes('alumni')) role = 'Alumni';
-        else if (email.includes('student')) role = 'Student';
-
-        const userWithRole = { ...userData, role };
-        setUser(userWithRole);
-        localStorage.setItem('user', JSON.stringify(userWithRole));
-        return role;
+    const login = async (email, password) => { // Updated signature
+        const data = await authService.login(email, password);
+        setUser(data);
+        return data.role; // Return role for redirect logic
     };
 
     const logout = () => {
+        authService.logout();
         setUser(null);
-        localStorage.removeItem('user');
     };
 
     return (

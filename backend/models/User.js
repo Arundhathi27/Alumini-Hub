@@ -29,6 +29,14 @@ const userSchema = mongoose.Schema(
             type: Boolean,
             default: false, // Default false, especially for Alumni
         },
+        batchYear: {
+            type: String,
+            required: false,
+        },
+        department: {
+            type: String,
+            required: false,
+        },
     },
     {
         timestamps: true,

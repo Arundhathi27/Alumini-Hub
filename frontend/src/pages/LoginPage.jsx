@@ -9,18 +9,17 @@ const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
     const navigate = useNavigate();
     const { login } = useAuth();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
+        setError('');
 
-        // Simulate API call
-        setTimeout(() => {
-            const role = login({ email });
-            setIsLoading(false);
-
+        try {
+            const role = await login(email, password);
             // Redirect based on role
             switch (role) {
                 case 'Admin':
@@ -38,7 +37,11 @@ const LoginPage = () => {
                 default:
                     navigate('/');
             }
-        }, 1000);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -60,6 +63,24 @@ const LoginPage = () => {
                     <h1 className={styles.title}>Alumni Hub</h1>
                     <p className={styles.subtitle}>Welcome back! Please access your account.</p>
                 </div>
+
+                {error && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        style={{
+                            color: '#ef4444',
+                            backgroundColor: '#fee2e2',
+                            padding: '0.75rem',
+                            borderRadius: '0.5rem',
+                            marginBottom: '1rem',
+                            fontSize: '0.875rem',
+                            textAlign: 'center'
+                        }}
+                    >
+                        {error}
+                    </motion.div>
+                )}
 
                 <form onSubmit={handleSubmit} className={styles.form}>
                     <div className={styles.inputGroup}>
@@ -118,11 +139,6 @@ const LoginPage = () => {
                     <p>
                         Having trouble accessing? <a href="#" className={styles.contactLink}>Contact Admin</a>
                     </p>
-                    <div style={{ marginTop: '1rem', fontSize: '0.75rem', color: '#9ca3af', borderTop: '1px solid #e5e7eb', paddingTop: '0.5rem' }}>
-                        <strong>Demo Hints:</strong><br />
-                        admin@test.com &bull; staff@test.com <br />
-                        alumni@test.com &bull; student@test.com
-                    </div>
                 </div>
             </motion.div>
         </div>

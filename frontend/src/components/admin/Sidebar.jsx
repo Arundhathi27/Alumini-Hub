@@ -8,7 +8,8 @@ import {
     UserCheck,
     LogOut,
     BarChart2,
-    Award
+    Award,
+    Building2
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import styles from '../../pages/admin/AdminDashboard.module.css';
@@ -27,6 +28,7 @@ const Sidebar = () => {
         { icon: Users, label: 'Alumni Management', path: '/admin/alumni' },
         { icon: Briefcase, label: 'Job Approvals', path: '/admin/jobs' },
         { icon: Calendar, label: 'Event Approvals', path: '/admin/events' },
+        { icon: Building2, label: 'Departments', path: '/admin/departments' },
         { icon: UserCheck, label: 'Users', path: '/admin/users' },
         { icon: BarChart2, label: 'Analytics', path: '/admin/analytics' },
     ];
