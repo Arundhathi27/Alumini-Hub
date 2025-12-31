@@ -128,5 +128,24 @@ export const adminService = {
         } catch (error) {
             throw error;
         }
+    },
+
+    bulkUploadUsers: async (formData) => {
+        try {
+            // No Content-Type header - browser sets it with boundary for FormData
+            const user = JSON.parse(localStorage.getItem('user'));
+            const response = await fetch(`${API_URL}/bulk-upload`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${user?.token}`
+                },
+                body: formData,
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'Failed to populate users');
+            return data;
+        } catch (error) {
+            throw error;
+        }
     }
 };

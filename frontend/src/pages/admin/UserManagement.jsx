@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import * as XLSX from 'xlsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Users, Plus, Search, Filter, MoreVertical,
     CheckCircle, XCircle, Shield, GraduationCap, Briefcase,
     Loader, Trash2, Edit2, AlertCircle, ArrowLeft, Folder,
-    ToggleLeft, ToggleRight
+    ToggleLeft, ToggleRight, Upload, FileSpreadsheet, Download
 } from 'lucide-react';
 import { adminService } from '../../services/adminService';
 import styles from './UserManagement.module.css';
@@ -32,6 +33,8 @@ const UserManagement = () => {
     const [editingUserId, setEditingUserId] = useState(null);
     const [formError, setFormError] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const fileInputRef = useRef(null);
+    const [uploadReport, setUploadReport] = useState(null); // { added, failed, errors }
 
     useEffect(() => {
         // Reset view mode when tab changes
@@ -147,6 +150,56 @@ const UserManagement = () => {
         return matchesSearch;
     });
 
+
+
+    const handleDownloadSample = () => {
+        const headers = [['Name', 'Email', 'Batch', 'Department']];
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(headers);
+
+        // Add some instruction or sample data?
+        // Sample data
+        XLSX.utils.sheet_add_json(ws, [
+            { Name: 'John Doe', Email: 'john@example.com', Batch: '2023', Department: 'MCA' },
+            { Name: 'Jane Smith', Email: 'jane@example.com', Batch: '2024', Department: 'MBA' }
+        ], { origin: 'A2', skipHeader: true });
+
+        XLSX.utils.book_append_sheet(wb, ws, "Users");
+        XLSX.writeFile(wb, `${activeTab}_Upload_Sample.xlsx`);
+    };
+
+    const handleBulkUploadClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('role', activeTab);
+
+        if (!window.confirm(`Upload ${file.name} to add ${activeTab}s?`)) {
+            e.target.value = null; // Reset
+            return;
+        }
+
+        try {
+            setIsLoading(true);
+            const res = await adminService.bulkUploadUsers(formData);
+            setUploadReport(res.report);
+            await fetchUsers();
+            alert(`Bulk Upload Complete!\nAdded: ${res.report.added}\nFailed: ${res.report.failed}`);
+        } catch (error) {
+            console.error(error);
+            alert('Upload failed: ' + error.message);
+        } finally {
+            setIsLoading(false);
+            e.target.value = null; // Reset input
+        }
+    };
+
     const getUniqueDepartments = () => {
         const depts = users
             .map(user => user.department)
@@ -180,15 +233,41 @@ const UserManagement = () => {
                     <h1 className={styles.title}>User Management</h1>
                     <p className={styles.subtitle}>Manage alumni, staff, and student accounts</p>
                 </div>
-                <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={styles.createButton}
-                    onClick={() => setShowCreateModal(true)}
-                >
-                    <Plus size={20} />
-                    <span>Add {activeTab}</span>
-                </motion.button>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        style={{ display: 'none' }}
+                        accept=".xlsx, .xls"
+                        onChange={handleFileChange}
+                    />
+                    <button
+                        className={styles.createButton}
+                        style={{ background: '#10b981' }}
+                        onClick={handleDownloadSample}
+                        title="Download Excel Template"
+                    >
+                        <Download size={20} />
+                        <span>Sample</span>
+                    </button>
+                    <button
+                        className={styles.createButton}
+                        style={{ background: '#f59e0b' }}
+                        onClick={handleBulkUploadClick}
+                    >
+                        <FileSpreadsheet size={20} />
+                        <span>Bulk Upload</span>
+                    </button>
+                    <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className={styles.createButton}
+                        onClick={() => setShowCreateModal(true)}
+                    >
+                        <Plus size={20} />
+                        <span>Add {activeTab}</span>
+                    </motion.button>
+                </div>
             </div>
 
             <div className={styles.tabs}>

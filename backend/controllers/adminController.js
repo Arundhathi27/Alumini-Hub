@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Department = require('../models/Department');
 const bcrypt = require('bcryptjs');
+const xlsx = require('xlsx');
 
 // @desc    Create a new user (Staff, Student, Alumni)
 // @route   POST /api/admin/create-user
@@ -209,6 +210,83 @@ const deleteUser = async (req, res) => {
     }
 };
 
+// @desc    Bulk upload users from Excel
+// @route   POST /api/admin/bulk-upload
+// @access  Private/Admin
+const bulkUploadUsers = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'Please upload an Excel file' });
+        }
+
+        const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const data = xlsx.utils.sheet_to_json(sheet);
+
+        if (data.length === 0) {
+            return res.status(400).json({ message: 'Excel sheet is empty' });
+        }
+
+        const report = {
+            total: data.length,
+            added: 0,
+            failed: 0,
+            errors: []
+        };
+
+        const { role } = req.body; // 'Alumni', 'Student', 'Staff' passed from frontend
+
+        for (const [index, row] of data.entries()) {
+            const { Name, Email, Department: DeptName, Batch, Role: fileRole } = row;
+            // Use role from file if present, else from request body
+            const userRole = fileRole || role;
+
+            // Basic Validation
+            if (!Name || !Email) {
+                report.failed++;
+                report.errors.push(`Row ${index + 2}: Missing Name or Email`);
+                continue;
+            }
+
+            try {
+                // Check if user exists
+                const userExists = await User.findOne({ email: Email });
+                if (userExists) {
+                    report.failed++;
+                    report.errors.push(`Row ${index + 2}: User ${Email} already exists`);
+                    continue;
+                }
+
+                // Default values
+                let isVerified = true;
+                if (userRole === 'Alumni') isVerified = false;
+
+                // Create User
+                await User.create({
+                    name: Name,
+                    email: Email,
+                    password: 'user@123', // Default Password
+                    role: userRole,
+                    department: DeptName,
+                    batchYear: Batch,
+                    isVerified
+                });
+
+                report.added++;
+            } catch (err) {
+                report.failed++;
+                report.errors.push(`Row ${index + 2}: ${err.message}`);
+            }
+        }
+
+        res.json({ message: 'Bulk upload completed', report });
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     createUser,
     getUsers,
@@ -217,5 +295,6 @@ module.exports = {
     createDepartment,
     getDepartments,
     updateUser,
-    deleteUser
+    deleteUser,
+    bulkUploadUsers
 };

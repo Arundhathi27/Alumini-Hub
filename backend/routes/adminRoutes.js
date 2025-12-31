@@ -1,5 +1,11 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+
+// Multer config for memory storage (processing Excel in memory)
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
 const {
     createUser,
     getUsers,
@@ -8,7 +14,8 @@ const {
     createDepartment,
     getDepartments,
     updateUser,
-    deleteUser
+    deleteUser,
+    bulkUploadUsers
 } = require('../controllers/adminController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
@@ -25,5 +32,8 @@ router.delete('/delete-user/:id', deleteUser);
 
 router.post('/create-department', createDepartment);
 router.get('/departments', getDepartments);
+
+// Bulk Upload Route
+router.post('/bulk-upload', upload.single('file'), bulkUploadUsers);
 
 module.exports = router;
