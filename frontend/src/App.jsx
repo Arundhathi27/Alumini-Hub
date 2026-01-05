@@ -5,6 +5,8 @@ import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import StaffDashboard from './pages/staff/StaffDashboard';
+import ProfilePage from './pages/alumni/ProfilePage';
+
 import AlumniDashboard from './pages/alumni/AlumniDashboard';
 import StudentDashboard from './pages/student/StudentDashboard';
 
@@ -28,6 +30,7 @@ function App() {
 
           {/* Alumni Routes */}
           <Route element={<ProtectedRoute allowedRoles={['Alumni']} />}>
+            <Route path="/alumni/profile" element={<ProfilePage />} />
             <Route path="/alumni/*" element={<AlumniDashboard />} />
           </Route>
 

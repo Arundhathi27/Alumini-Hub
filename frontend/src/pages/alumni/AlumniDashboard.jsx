@@ -1,17 +1,19 @@
-import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Briefcase, Calendar, MessageSquare, Edit3, Eye, Clock, CheckCircle } from 'lucide-react';
 import Sidebar from '../../components/alumni/Sidebar';
 import Topbar from '../../components/alumni/Topbar';
 import styles from './AlumniDashboard.module.css';
 
-const ActionCard = ({ icon: Icon, title, description, color, delay }) => (
+const ActionCard = ({ icon: Icon, title, description, color, delay, onClick }) => (
     <motion.div
         className={`${styles.card} ${styles.actionCard}`}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay }}
         whileHover={{ y: -4 }}
+        onClick={onClick}
+        style={{ cursor: onClick ? 'pointer' : 'default' }}
     >
         <div style={{ padding: '0.75rem', borderRadius: '0.5rem', background: color, width: 'fit-content', color: 'white', marginBottom: '1rem' }}>
             <Icon size={24} />
@@ -22,6 +24,7 @@ const ActionCard = ({ icon: Icon, title, description, color, delay }) => (
 );
 
 const AlumniDashboard = () => {
+    const navigate = useNavigate();
     // Mock Data
     const myPosts = [
         { id: 1, type: "Job", title: "Senior React Developer", date: "2025-10-15", status: "Approved" },
@@ -55,7 +58,12 @@ const AlumniDashboard = () => {
                                 </div>
                             </div>
                         </div>
-                        <button className={styles.btnPrimary}>Complete Profile</button>
+                        <button
+                            className={styles.btnPrimary}
+                            onClick={() => navigate('/alumni/profile')}
+                        >
+                            Complete Profile
+                        </button>
                     </motion.div>
 
                     {/* Quick Actions */}
@@ -81,6 +89,7 @@ const AlumniDashboard = () => {
                             description="Update your professional details."
                             color="#f59e0b"
                             delay={0.3}
+                            onClick={() => navigate('/alumni/profile')}
                         />
                         <ActionCard
                             icon={MessageSquare}
@@ -119,7 +128,7 @@ const AlumniDashboard = () => {
                                                 <td className={styles.td}>{post.date}</td>
                                                 <td className={styles.td}>
                                                     <span className={`${styles.badge} ${post.status === 'Approved' ? styles.badgeApproved :
-                                                            post.status === 'Pending' ? styles.badgePending : styles.badgeRejected
+                                                        post.status === 'Pending' ? styles.badgePending : styles.badgeRejected
                                                         }`}>
                                                         {post.status}
                                                     </span>
