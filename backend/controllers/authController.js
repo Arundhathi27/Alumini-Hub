@@ -21,13 +21,9 @@ const loginUser = async (req, res) => {
         if (isMatch) {
             // 3. Role-specific validation
 
-            // Alumni: Must be Verified
-            if (user.role === 'Alumni' && !user.isVerified) {
-                return res.status(403).json({ message: 'Account pending verification. Please contact admin.' });
-            }
-
-            // Student & Staff: Must be Active
-            if ((['Student', 'Staff'].includes(user.role)) && !user.isActive) {
+            // Check if user is Active (for ALL roles)
+            // If Admin rejects an Alumni, they set isActive=false.
+            if (!user.isActive) {
                 return res.status(403).json({ message: 'Account is inactive. Please contact support.' });
             }
 
@@ -37,6 +33,7 @@ const loginUser = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                isVerified: user.isVerified,
                 token: generateToken(user._id, user.role),
             });
         }

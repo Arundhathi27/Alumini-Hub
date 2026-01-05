@@ -27,7 +27,7 @@ const Sidebar = () => {
         { icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard' },
         { icon: Users, label: 'Alumni Management', path: '/admin/alumni' },
         { icon: Briefcase, label: 'Job Approvals', path: '/admin/jobs' },
-        { icon: Calendar, label: 'Event Approvals', path: '/admin/events' },
+        { icon: Calendar, label: 'Event Approvals', path: '/admin/event-approvals' },
         { icon: Building2, label: 'Departments', path: '/admin/departments' },
         { icon: UserCheck, label: 'Users', path: '/admin/users' },
         { icon: BarChart2, label: 'Analytics', path: '/admin/analytics' },

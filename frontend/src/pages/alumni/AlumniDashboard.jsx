@@ -1,9 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Briefcase, Calendar, MessageSquare, Edit3, Eye, Clock, CheckCircle } from 'lucide-react';
+import { Briefcase, Calendar, MessageSquare, Edit3, Eye, Clock, CheckCircle, Shield } from 'lucide-react'; // Added Shield here too just in case it's missing
 import Sidebar from '../../components/alumni/Sidebar';
 import Topbar from '../../components/alumni/Topbar';
 import styles from './AlumniDashboard.module.css';
+import { useAuth } from '../../context/AuthContext';
 
 const ActionCard = ({ icon: Icon, title, description, color, delay, onClick }) => (
     <motion.div
@@ -24,6 +25,7 @@ const ActionCard = ({ icon: Icon, title, description, color, delay, onClick }) =
 );
 
 const AlumniDashboard = () => {
+    const { user } = useAuth();
     const navigate = useNavigate();
     // Mock Data
     const myPosts = [
@@ -40,7 +42,6 @@ const AlumniDashboard = () => {
 
                 <main className={styles.content}>
 
-                    {/* Welcome / Profile Summary */}
                     <motion.div
                         className={styles.card}
                         style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
@@ -48,13 +49,22 @@ const AlumniDashboard = () => {
                         animate={{ opacity: 1 }}
                     >
                         <div className={styles.profileStatus}>
-                            <div className={styles.avatar}>AU</div>
+                            <div className={styles.avatar}>
+                                {user?.name?.charAt(0) || 'A'}
+                            </div>
                             <div>
-                                <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#111827' }}>Welcome back, Alumni!</h2>
-                                <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>Batch of 2020 • Computer Science</p>
+                                <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#111827' }}>Welcome back, {user?.name}!</h2>
+                                <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>Alumni Member</p>
                                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-                                    <span className={`${styles.badge} ${styles.badgeApproved}`}>Verified Profile</span>
-                                    <span style={{ fontSize: '0.75rem', color: '#6b7280', alignSelf: 'center' }}>80% Profile Complete</span>
+                                    {user?.isVerified ? (
+                                        <span className={`${styles.badge} ${styles.badgeApproved}`}>
+                                            <CheckCircle size={12} style={{ marginRight: '4px' }} /> Verified Alumni
+                                        </span>
+                                    ) : (
+                                        <span className={`${styles.badge} ${styles.badgePending}`}>
+                                            Pending Verification
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -66,6 +76,30 @@ const AlumniDashboard = () => {
                         </button>
                     </motion.div>
 
+                    {/* Verification Warning Banner */}
+                    {!user?.isVerified && (
+                        <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            style={{
+                                background: '#fffbeb',
+                                border: '1px solid #fcd34d',
+                                padding: '1rem',
+                                borderRadius: '0.5rem',
+                                marginBottom: '2rem',
+                                color: '#92400e',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.75rem'
+                            }}
+                        >
+                            <Shield size={20} />
+                            <div>
+                                <strong>Verification Pending:</strong> Your account is currently under review. You cannot post jobs or events until verified.
+                            </div>
+                        </motion.div>
+                    )}
+
                     {/* Quick Actions */}
                     <h3 className={styles.sectionTitle} style={{ marginTop: 0 }}>Quick Actions</h3>
                     <div className={styles.statsGrid}>
@@ -73,15 +107,17 @@ const AlumniDashboard = () => {
                             icon={Briefcase}
                             title="Post a Job"
                             description="Share opportunities with students."
-                            color="#4f46e5"
+                            color={user?.isVerified ? "#4f46e5" : "#9ca3af"}
                             delay={0.1}
+                            onClick={user?.isVerified ? () => navigate('/alumni/post-job') : null}
                         />
                         <ActionCard
                             icon={Calendar}
                             title="Post an Event"
                             description="Host webinars or meetups."
-                            color="#ec4899"
+                            color={user?.isVerified ? "#ec4899" : "#9ca3af"}
                             delay={0.2}
+                            onClick={user?.isVerified ? () => navigate('/alumni/post-event') : null}
                         />
                         <ActionCard
                             icon={Edit3}

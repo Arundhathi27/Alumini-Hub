@@ -1,0 +1,113 @@
+const Job = require('../models/Job');
+const User = require('../models/User'); // Import User to populate if needed
+
+// @desc    Create a new job post
+// @route   POST /api/alumni/jobs
+// @access  Private (Alumni Only)
+const createJob = async (req, res) => {
+    try {
+        // Enforce Verification Check
+        if (!req.user.isVerified) {
+            return res.status(403).json({ message: 'Only verified alumni can post jobs.' });
+        }
+
+        const {
+            title,
+            company,
+            role,
+            type,
+            location,
+            skills,
+            experience,
+            description,
+            applyLink
+        } = req.body;
+
+        if (!title || !company || !role || !type || !location || !skills || !experience || !description || !applyLink) {
+            return res.status(400).json({ message: 'Please fill all required fields' });
+        }
+
+        const job = await Job.create({
+            title,
+            company,
+            role,
+            type,
+            location,
+            skills, // Assuming skills is already an array or needs parsing if sent as string
+            experience,
+            description,
+            applyLink,
+            postedBy: req.user._id,
+            status: 'Pending'
+        });
+
+        res.status(201).json(job);
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Get all jobs posted by logged-in alumni
+// @route   GET /api/alumni/jobs
+// @access  Private (Alumni Only)
+const getMyJobs = async (req, res) => {
+    try {
+        const jobs = await Job.find({ postedBy: req.user._id }).sort({ createdAt: -1 });
+        res.json(jobs);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Get all jobs (Admin) - Supports filtering by status
+// @route   GET /api/alumni/jobs/all
+// @access  Private (Admin)
+const getAllJobs = async (req, res) => {
+    try {
+        const { status } = req.query;
+        console.log('Admin getAllJobs request:', { status, user: req.user._id });
+
+        let query = {};
+        if (status) {
+            query.status = status;
+        }
+
+        console.log('Querying Jobs with:', query);
+        const jobs = await Job.find(query).populate('postedBy', 'name email').sort({ createdAt: -1 });
+        console.log(`Found ${jobs.length} jobs`);
+
+        res.json(jobs);
+    } catch (error) {
+        console.error('Error in getAllJobs:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Update Job Status (Admin)
+// @route   PUT /api/alumni/jobs/:id/status
+// @access  Private (Admin)
+const updateJobStatus = async (req, res) => {
+    try {
+        const { status } = req.body; // 'Approved' or 'Rejected'
+        const job = await Job.findById(req.params.id);
+
+        if (!job) {
+            return res.status(404).json({ message: 'Job not found' });
+        }
+
+        job.status = status;
+        await job.save();
+
+        res.json(job);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = {
+    createJob,
+    getMyJobs,
+    getAllJobs,
+    updateJobStatus
+};

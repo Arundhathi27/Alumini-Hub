@@ -5,6 +5,8 @@ import Topbar from '../../components/admin/Topbar';
 import DashboardOverview from './DashboardOverview';
 import UserManagement from './UserManagement';
 import DepartmentManagement from './DepartmentManagement';
+import JobApprovals from './JobApprovals';
+import EventApprovals from './EventApprovals';
 import styles from './AdminDashboard.module.css';
 
 const AdminDashboard = () => {
@@ -21,10 +23,8 @@ const AdminDashboard = () => {
 
                         <Route path="users" element={<UserManagement />} />
                         <Route path="departments" element={<DepartmentManagement />} />
-                        {/* Placeholder routes for others to avoid 404 in console if clicked */}
-                        <Route path="alumni" element={<div>Alumni Management Module</div>} />
-                        <Route path="jobs" element={<div>Job Approvals Module</div>} />
-                        <Route path="events" element={<div>Event Approvals Module</div>} />
+                        <Route path="jobs" element={<JobApprovals />} />
+                        <Route path="event-approvals" element={<EventApprovals />} />
                         <Route path="analytics" element={<div>Analytics Module</div>} />
                     </Routes>
                 </main>

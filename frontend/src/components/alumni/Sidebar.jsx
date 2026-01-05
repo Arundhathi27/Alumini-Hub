@@ -28,6 +28,7 @@ const Sidebar = () => {
         { icon: Briefcase, label: 'Post Job', path: '/alumni/post-job' },
         { icon: Calendar, label: 'Post Event', path: '/alumni/post-event' },
         { icon: FileText, label: 'My Posts', path: '/alumni/posts' },
+        { icon: FileText, label: 'My Events', path: '/alumni/my-events' },
         { icon: MessageSquare, label: 'Messages', path: '/alumni/messages' },
     ];
 
