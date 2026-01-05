@@ -17,7 +17,7 @@ const seedUsers = async () => {
             return await bcrypt.hash(password, salt);
         };
 
-        const hashedPassword = await hashPassword('password123');
+        const hashedPassword = await hashPassword('user@123');
 
         const users = [
             {

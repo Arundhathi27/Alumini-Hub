@@ -35,7 +35,7 @@ const runTests = async () => {
 
     // 1. Test Admin Login (Should Success)
     try {
-        const adminData = JSON.stringify({ email: 'admin@example.com', password: 'password123' });
+        const adminData = JSON.stringify({ email: 'admin@example.com', password: 'user@123' });
         const adminRes = await postRequest(adminData, '/api/auth/login');
         console.log(`[TEST 1] Admin Login: ${adminRes.status === 200 ? 'PASS' : 'FAIL'} (Status: ${adminRes.status})`);
         if (adminRes.status === 200) console.log('       Token received:', !!adminRes.body.token);
@@ -43,7 +43,7 @@ const runTests = async () => {
 
     // 2. Test Pending Alumni Login (Should Fail 403)
     try {
-        const pendingData = JSON.stringify({ email: 'pending@example.com', password: 'password123' });
+        const pendingData = JSON.stringify({ email: 'pending@example.com', password: 'user@123' });
         const pendingRes = await postRequest(pendingData, '/api/auth/login');
         console.log(`[TEST 2] Pending Alumni Login: ${pendingRes.status === 403 ? 'PASS' : 'FAIL'} (Status: ${pendingRes.status}) - ${pendingRes.body.message}`);
     } catch (e) { console.error('[TEST 2] FAILED connection', e.message); }

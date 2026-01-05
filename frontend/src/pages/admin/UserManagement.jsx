@@ -8,6 +8,7 @@ import {
     ToggleLeft, ToggleRight, Upload, FileSpreadsheet, Download
 } from 'lucide-react';
 import { adminService } from '../../services/adminService';
+import BulkUploadModal from '../../components/admin/BulkUploadModal';
 import styles from './UserManagement.module.css';
 
 const UserManagement = () => {
@@ -19,6 +20,7 @@ const UserManagement = () => {
     const [selectedDepartment, setSelectedDepartment] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showBulkUploadModal, setShowBulkUploadModal] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
 
     // Form State
@@ -169,34 +171,23 @@ const UserManagement = () => {
     };
 
     const handleBulkUploadClick = () => {
-        fileInputRef.current?.click();
+        setShowBulkUploadModal(true);
     };
 
-    const handleFileChange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('role', activeTab);
-
-        if (!window.confirm(`Upload ${file.name} to add ${activeTab}s?`)) {
-            e.target.value = null; // Reset
-            return;
-        }
-
+    const handleModalUpload = async (file) => {
         try {
-            setIsLoading(true);
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('role', activeTab);
+
             const res = await adminService.bulkUploadUsers(formData);
             setUploadReport(res.report);
             await fetchUsers();
             alert(`Bulk Upload Complete!\nAdded: ${res.report.added}\nFailed: ${res.report.failed}`);
+            setShowBulkUploadModal(false);
         } catch (error) {
             console.error(error);
             alert('Upload failed: ' + error.message);
-        } finally {
-            setIsLoading(false);
-            e.target.value = null; // Reset input
         }
     };
 
@@ -234,13 +225,6 @@ const UserManagement = () => {
                     <p className={styles.subtitle}>Manage alumni, staff, and student accounts</p>
                 </div>
                 <div style={{ display: 'flex', gap: '10px' }}>
-                    <input
-                        type="file"
-                        ref={fileInputRef}
-                        style={{ display: 'none' }}
-                        accept=".xlsx, .xls"
-                        onChange={handleFileChange}
-                    />
                     <button
                         className={styles.createButton}
                         style={{ background: '#10b981' }}
@@ -562,6 +546,14 @@ const UserManagement = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+            {/* Bulk Upload Modal */}
+            <BulkUploadModal
+                isOpen={showBulkUploadModal}
+                onClose={() => setShowBulkUploadModal(false)}
+                onUpload={handleModalUpload}
+                role={activeTab}
+                departments={departments}
+            />
         </div>
     );
 };

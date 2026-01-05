@@ -13,29 +13,33 @@ const loginUser = async (req, res) => {
     }
 
     // 2. Find user by email
-    const user = await User.findOne({ email });
+    const trimmedEmail = email.trim().toLowerCase();
+    const user = await User.findOne({ email: trimmedEmail });
 
-    if (user && (await user.matchPassword(password))) {
-        // 3. Role-specific validation
+    if (user) {
+        const isMatch = await user.matchPassword(password);
+        if (isMatch) {
+            // 3. Role-specific validation
 
-        // Alumni: Must be Verified
-        if (user.role === 'Alumni' && !user.isVerified) {
-            return res.status(403).json({ message: 'Account pending verification. Please contact admin.' });
+            // Alumni: Must be Verified
+            if (user.role === 'Alumni' && !user.isVerified) {
+                return res.status(403).json({ message: 'Account pending verification. Please contact admin.' });
+            }
+
+            // Student & Staff: Must be Active
+            if ((['Student', 'Staff'].includes(user.role)) && !user.isActive) {
+                return res.status(403).json({ message: 'Account is inactive. Please contact support.' });
+            }
+
+            // 4. Return success with Token
+            res.json({
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                token: generateToken(user._id, user.role),
+            });
         }
-
-        // Student & Staff: Must be Active
-        if ((['Student', 'Staff'].includes(user.role)) && !user.isActive) {
-            return res.status(403).json({ message: 'Account is inactive. Please contact support.' });
-        }
-
-        // 4. Return success with Token
-        res.json({
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-            token: generateToken(user._id, user.role),
-        });
     } else {
         res.status(401).json({ message: 'Invalid email or password' });
     }
