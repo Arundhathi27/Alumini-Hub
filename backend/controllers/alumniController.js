@@ -91,4 +91,98 @@ const updateProfile = async (req, res) => {
     }
 };
 
-module.exports = { getProfile, updateProfile };
+// @desc    Get all verified alumni for directory
+// @route   GET /api/alumni
+// @access  Private (Admin, Staff, Student)
+const getVerifiedAlumni = async (req, res) => {
+    try {
+        const { name, batch, company, role, location, skills } = req.query;
+
+        // Query only verified and active users
+        let userQuery = { isVerified: true, isActive: true, role: 'Alumni' };
+
+        if (name) {
+            userQuery.name = { $regex: name, $options: 'i' };
+        }
+        if (batch) {
+            userQuery.batchYear = batch;
+        }
+
+        // Get all verified alumni users
+        const users = await User.find(userQuery).select('name batchYear department').lean();
+        const userIds = users.map(u => u._id);
+
+        // Get profiles for these users
+        let profileQuery = { user: { $in: userIds } };
+
+        if (company) {
+            profileQuery['workExperience.currentCompany'] = { $regex: company, $options: 'i' };
+        }
+        if (role) {
+            profileQuery['workExperience.designation'] = { $regex: role, $options: 'i' };
+        }
+        if (location) {
+            profileQuery.location = { $regex: location, $options: 'i' };
+        }
+        if (skills) {
+            profileQuery.skills = { $regex: skills, $options: 'i' };
+        }
+
+        const profiles = await AlumniProfile.find(profileQuery).populate('user', 'name batchYear department').lean();
+
+        // Create a map of user ID to profile
+        const profileMap = {};
+        profiles.forEach(profile => {
+            profileMap[profile.user._id.toString()] = profile;
+        });
+
+        // Build result: include all users, with profile if available
+        const result = users.map(user => {
+            const profile = profileMap[user._id.toString()];
+            if (profile) {
+                return profile;
+            } else {
+                // Return minimal data if no profile exists
+                return {
+                    user: user,
+                    phone: '',
+                    about: '',
+                    location: '',
+                    workExperience: { currentCompany: '', designation: '', industry: '', yearsOfExperience: 0 },
+                    skills: [],
+                    socialLinks: { linkedin: '', github: '', portfolio: '' }
+                };
+            }
+        });
+
+        // Apply company/role/location/skills filters on the result
+        let filteredResult = result;
+        if (company) {
+            filteredResult = filteredResult.filter(r =>
+                r.workExperience?.currentCompany?.toLowerCase().includes(company.toLowerCase())
+            );
+        }
+        if (role) {
+            filteredResult = filteredResult.filter(r =>
+                r.workExperience?.designation?.toLowerCase().includes(role.toLowerCase())
+            );
+        }
+        if (location) {
+            filteredResult = filteredResult.filter(r =>
+                r.location?.toLowerCase().includes(location.toLowerCase())
+            );
+        }
+        if (skills) {
+            filteredResult = filteredResult.filter(r =>
+                r.skills?.some(skill => skill.toLowerCase().includes(skills.toLowerCase()))
+            );
+        }
+
+        res.json(filteredResult);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
+module.exports = { getProfile, updateProfile, getVerifiedAlumni };

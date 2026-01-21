@@ -5,6 +5,7 @@ import Topbar from '../../components/student/Topbar';
 import StudentOverview from './StudentOverview';
 import StudentJobs from './StudentJobs';
 import StudentEvents from './StudentEvents';
+import StudentAlumni from './StudentAlumni';
 import styles from './StudentDashboard.module.css';
 
 const StudentDashboard = () => {
@@ -20,6 +21,7 @@ const StudentDashboard = () => {
                         <Route path="/dashboard" element={<StudentOverview />} />
                         <Route path="/jobs" element={<StudentJobs />} />
                         <Route path="/events" element={<StudentEvents />} />
+                        <Route path="/alumni" element={<StudentAlumni />} />
                     </Routes>
                 </main>
             </div>

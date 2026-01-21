@@ -26,6 +26,7 @@ const Sidebar = () => {
     const navItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard' },
         { icon: Users, label: 'Alumni Management', path: '/admin/alumni' },
+        { icon: Users, label: 'Alumni Directory', path: '/admin/alumni-directory' },
         { icon: Briefcase, label: 'Job Approvals', path: '/admin/jobs' },
         { icon: Calendar, label: 'Event Approvals', path: '/admin/event-approvals' },
         { icon: Building2, label: 'Departments', path: '/admin/departments' },

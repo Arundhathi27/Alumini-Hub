@@ -7,6 +7,7 @@ import StaffJobVerification from './StaffJobVerification';
 import StaffJobs from './StaffJobs';
 import StaffEventVerification from './StaffEventVerification';
 import StaffEvents from './StaffEvents';
+import StaffAlumni from './StaffAlumni';
 import styles from './StaffDashboard.module.css';
 
 const StaffDashboard = () => {
@@ -24,6 +25,7 @@ const StaffDashboard = () => {
                         <Route path="/jobs" element={<StaffJobs />} />
                         <Route path="/event-verification" element={<StaffEventVerification />} />
                         <Route path="/events" element={<StaffEvents />} />
+                        <Route path="/alumni" element={<StaffAlumni />} />
                     </Routes>
                 </main>
             </div>
