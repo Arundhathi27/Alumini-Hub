@@ -105,9 +105,61 @@ const updateJobStatus = async (req, res) => {
     }
 };
 
+// @desc    Update a job post
+// @route   PUT /api/alumni/jobs/:id
+// @access  Private (Alumni Only)
+const updateJob = async (req, res) => {
+    try {
+        const {
+            title,
+            company,
+            role,
+            type,
+            location,
+            skills,
+            experience,
+            description,
+            applyLink
+        } = req.body;
+
+        const job = await Job.findById(req.params.id);
+
+        if (!job) {
+            return res.status(404).json({ message: 'Job not found' });
+        }
+
+        // Check ownership
+        if (job.postedBy.toString() !== req.user._id.toString()) {
+            return res.status(401).json({ message: 'Not authorized' });
+        }
+
+        // Check status (Can only edit if 'Pending')
+        if (job.status !== 'Pending') {
+            return res.status(400).json({ message: 'Cannot edit job after it has been processed.' });
+        }
+
+        job.title = title || job.title;
+        job.company = company || job.company;
+        job.role = role || job.role;
+        job.type = type || job.type;
+        job.location = location || job.location;
+        job.skills = skills || job.skills;
+        job.experience = experience || job.experience;
+        job.description = description || job.description;
+        job.applyLink = applyLink || job.applyLink;
+
+        await job.save();
+
+        res.json(job);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     createJob,
     getMyJobs,
     getAllJobs,
-    updateJobStatus
+    updateJobStatus,
+    updateJob
 };

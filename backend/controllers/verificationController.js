@@ -127,10 +127,40 @@ const verifyEvent = async (req, res) => {
     }
 };
 
+// @desc    Get all APPROVED events for listing
+// @route   GET /api/events
+// @access  Private (Student, Staff, Alumni)
+const getApprovedEvents = async (req, res) => {
+    try {
+        const { title, type, mode } = req.query;
+
+        let query = { status: 'Approved' };
+
+        if (title) {
+            query.title = { $regex: title, $options: 'i' };
+        }
+        if (type && type !== 'All') {
+            query.type = type;
+        }
+        if (mode && mode !== 'All') {
+            query.mode = mode;
+        }
+
+        const events = await Event.find(query)
+            .populate('postedBy', 'name email')
+            .sort({ date: 1 }); // Sort by date ascending (nearest first)
+
+        res.json(events);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     getPendingJobs,
     verifyJob,
     getApprovedJobs,
     getPendingEvents,
-    verifyEvent
+    verifyEvent,
+    getApprovedEvents
 };

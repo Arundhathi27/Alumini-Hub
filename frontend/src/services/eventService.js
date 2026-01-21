@@ -26,7 +26,16 @@ const getMyEvents = async () => {
     return response.data;
 };
 
+const updateEvent = async (eventId, eventData) => {
+    const config = {
+        headers: getAuthHeader()
+    };
+    const response = await axios.put(`${API_URL}/${eventId}`, eventData, config);
+    return response.data;
+};
+
 export const eventService = {
     createEvent,
-    getMyEvents
+    getMyEvents,
+    updateEvent
 };

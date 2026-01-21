@@ -61,7 +61,56 @@ const getMyEvents = async (req, res) => {
     }
 };
 
+// @desc    Update an event (Alumni)
+// @route   PUT /api/alumni/events/:id
+// @access  Private (Alumni Only)
+const updateEvent = async (req, res) => {
+    try {
+        const {
+            title, type, description, date, time, mode, location, link
+        } = req.body;
+
+        const event = await Event.findById(req.params.id);
+
+        if (!event) {
+            return res.status(404).json({ message: 'Event not found' });
+        }
+
+        // Check ownership
+        if (event.postedBy.toString() !== req.user._id.toString()) {
+            return res.status(401).json({ message: 'Not authorized' });
+        }
+
+        // Check status (Can only edit if 'Pending')
+        if (event.status !== 'Pending') {
+            return res.status(400).json({ message: 'Cannot edit event after it has been processed.' });
+        }
+
+        event.title = title || event.title;
+        event.type = type || event.type;
+        event.description = description || event.description;
+        event.date = date || event.date;
+        event.time = time || event.time;
+        event.mode = mode || event.mode;
+        // Logic for location: if switching to Offline, location is required. If switching to Online, clear location?
+        // User logic seems to set location conditionally.
+        if (mode === 'Offline' && !location && !event.location) {
+            // If mode is offline, new location must be present if old one wasn't there? 
+            // Simplest is to just update if provided.
+        }
+        event.location = mode === 'Offline' ? (location || event.location) : 'Online';
+        event.link = link || event.link;
+
+        await event.save();
+
+        res.json(event);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     createEvent,
-    getMyEvents
+    getMyEvents,
+    updateEvent
 };

@@ -23,7 +23,8 @@ const Sidebar = () => {
 
     const navItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/student/dashboard' },
-        { icon: Users, label: 'Alumni Directory', path: '/student/alumni' },
+        { icon: Briefcase, label: 'Jobs', path: '/student/jobs' },
+        { icon: Calendar, label: 'Events', path: '/student/events' },
         { icon: Briefcase, label: 'Jobs', path: '/student/jobs' },
         { icon: Calendar, label: 'Events', path: '/student/events' },
         { icon: MessageCircle, label: 'Messages', path: '/student/messages' },

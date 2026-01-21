@@ -4,6 +4,7 @@ import Sidebar from '../../components/student/Sidebar';
 import Topbar from '../../components/student/Topbar';
 import StudentOverview from './StudentOverview';
 import StudentJobs from './StudentJobs';
+import StudentEvents from './StudentEvents';
 import styles from './StudentDashboard.module.css';
 
 const StudentDashboard = () => {
@@ -15,10 +16,10 @@ const StudentDashboard = () => {
 
                 <main className={styles.content}>
                     <Routes>
-                        <Route path="/" element={<Navigate to="dashboard" replace />} />
-                        <Route path="dashboard" element={<StudentOverview />} />
-                        <Route path="jobs" element={<StudentJobs />} />
-                        {/* Other routes like directory, events, etc. */}
+                        <Route path="/" element={<StudentOverview />} />
+                        <Route path="/dashboard" element={<StudentOverview />} />
+                        <Route path="/jobs" element={<StudentJobs />} />
+                        <Route path="/events" element={<StudentEvents />} />
                     </Routes>
                 </main>
             </div>

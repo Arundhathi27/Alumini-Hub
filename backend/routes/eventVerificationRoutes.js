@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { getPendingEvents, verifyEvent } = require('../controllers/verificationController');
+const { getPendingEvents, verifyEvent, getApprovedEvents } = require('../controllers/verificationController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 
-// Pending Events (Admin & Staff)
-router.get('/pending', protect, authorize('Admin', 'Staff'), getPendingEvents);
+// Public listing route (all authenticated users)
+router.get('/', protect, getApprovedEvents);
 
-// Verify Event (Admin & Staff)
+// Admin/Staff verification routes
+router.get('/pending', protect, authorize('Admin', 'Staff'), getPendingEvents);
 router.put('/verify', protect, authorize('Admin', 'Staff'), verifyEvent);
 
 module.exports = router;

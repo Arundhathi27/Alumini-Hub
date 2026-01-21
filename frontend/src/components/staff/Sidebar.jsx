@@ -25,9 +25,10 @@ const Sidebar = () => {
         { icon: LayoutDashboard, label: 'Dashboard', path: '/staff/dashboard' },
         { icon: Users, label: 'Alumni Directory', path: '/staff/alumni' },
         { icon: CheckCircle, label: 'Job Verification', path: '/staff/job-verification' },
+        { icon: CheckCircle, label: 'Job Verification', path: '/staff/job-verification' },
+        { icon: Briefcase, label: 'Jobs', path: '/staff/jobs' },
         { icon: Calendar, label: 'Event Verification', path: '/staff/event-verification' },
-        { icon: Briefcase, label: 'Approved Jobs', path: '/staff/jobs' },
-        { icon: Calendar, label: 'Approved Events', path: '/staff/events' },
+        { icon: Calendar, label: 'Events', path: '/staff/events' },
     ];
 
     return (

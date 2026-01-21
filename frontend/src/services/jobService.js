@@ -24,7 +24,19 @@ const createJob = async (jobData) => {
     return response.data;
 };
 
+const updateJob = async (jobId, jobData) => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    const config = {
+        headers: {
+            Authorization: `Bearer ${user.token}`,
+        },
+    };
+    const response = await axios.put(`${API_URL}/${jobId}`, jobData, config);
+    return response.data;
+};
+
 export const jobService = {
     getMyJobs,
     createJob,
+    updateJob,
 };
