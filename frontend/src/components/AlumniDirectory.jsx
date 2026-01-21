@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, User, Briefcase, MapPin, Calendar, Linkedin, X, Mail } from 'lucide-react';
 import { alumniDirectoryService } from '../services/alumniDirectoryService';
+import { useDebounce } from '../hooks/useDebounce';
+import FilterChips from './shared/FilterChips';
 import dashboardStyles from '../pages/alumni/AlumniDashboard.module.css';
 
 const AlumniProfileModal = ({ alumni, onClose }) => {
@@ -140,9 +142,17 @@ const AlumniDirectory = () => {
     });
     const [selectedAlumni, setSelectedAlumni] = useState(null);
 
+    // Debounced filter values
+    const debouncedName = useDebounce(filters.name, 500);
+    const debouncedBatch = useDebounce(filters.batch, 500);
+    const debouncedCompany = useDebounce(filters.company, 500);
+    const debouncedRole = useDebounce(filters.role, 500);
+    const debouncedLocation = useDebounce(filters.location, 500);
+    const debouncedSkills = useDebounce(filters.skills, 500);
+
     useEffect(() => {
         fetchAlumni();
-    }, [filters]);
+    }, [debouncedName, debouncedBatch, debouncedCompany, debouncedRole, debouncedLocation, debouncedSkills]);
 
     const fetchAlumni = async () => {
         setLoading(true);
@@ -166,6 +176,21 @@ const AlumniDirectory = () => {
 
     const handleFilterChange = (key, value) => {
         setFilters(prev => ({ ...prev, [key]: value }));
+    };
+
+    const handleRemoveFilter = (key) => {
+        setFilters(prev => ({ ...prev, [key]: '' }));
+    };
+
+    const handleClearAll = () => {
+        setFilters({
+            name: '',
+            batch: '',
+            company: '',
+            role: '',
+            location: '',
+            skills: ''
+        });
     };
 
     return (
@@ -300,6 +325,13 @@ const AlumniDirectory = () => {
                     />
                 </div>
             </div>
+
+            {/* Filter Chips */}
+            <FilterChips
+                activeFilters={filters}
+                onRemove={handleRemoveFilter}
+                onClearAll={handleClearAll}
+            />
 
             {/* Alumni Cards */}
             {loading ? (

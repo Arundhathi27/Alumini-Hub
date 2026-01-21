@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Calendar, MapPin, Link as LinkIcon, Clock, User, X } from 'lucide-react';
 import { studentEventService } from '../services/studentEventService';
+import { useDebounce } from '../hooks/useDebounce';
+import FilterChips from './shared/FilterChips';
 import dashboardStyles from '../pages/alumni/AlumniDashboard.module.css';
 
 const EventDetailsModal = ({ event, onClose }) => {
@@ -86,9 +88,14 @@ const EventListing = () => {
     });
     const [selectedEvent, setSelectedEvent] = useState(null);
 
+    // Debounced filter values
+    const debouncedTitle = useDebounce(filters.title, 500);
+    const debouncedType = useDebounce(filters.type, 300);
+    const debouncedMode = useDebounce(filters.mode, 300);
+
     useEffect(() => {
         fetchEvents();
-    }, [filters]);
+    }, [debouncedTitle, debouncedType, debouncedMode]);
 
     const fetchEvents = async () => {
         setLoading(true);
@@ -109,6 +116,18 @@ const EventListing = () => {
 
     const handleFilterChange = (key, value) => {
         setFilters(prev => ({ ...prev, [key]: value }));
+    };
+
+    const handleRemoveFilter = (key) => {
+        setFilters(prev => ({ ...prev, [key]: key === 'title' ? '' : 'All' }));
+    };
+
+    const handleClearAll = () => {
+        setFilters({
+            title: '',
+            type: 'All',
+            mode: 'All'
+        });
     };
 
     return (
@@ -192,6 +211,13 @@ const EventListing = () => {
                     </select>
                 </div>
             </div>
+
+            {/* Filter Chips */}
+            <FilterChips
+                activeFilters={filters}
+                onRemove={handleRemoveFilter}
+                onClearAll={handleClearAll}
+            />
 
             {/* Event Cards */}
             {loading ? (
