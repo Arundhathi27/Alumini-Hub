@@ -4,10 +4,10 @@ import Sidebar from '../../components/staff/Sidebar';
 import Topbar from '../../components/staff/Topbar';
 import StaffOverview from './StaffOverview';
 import StaffJobVerification from './StaffJobVerification';
-import StaffJobs from './StaffJobs';
 import StaffEventVerification from './StaffEventVerification';
 import StaffEvents from './StaffEvents';
 import StaffAlumni from './StaffAlumni';
+import StaffMessages from './StaffMessages';
 import styles from './StaffDashboard.module.css';
 
 const StaffDashboard = () => {
@@ -19,13 +19,13 @@ const StaffDashboard = () => {
 
                 <main className={styles.content}>
                     <Routes>
-                        <Route path="/" element={<StaffOverview />} />
-                        <Route path="/dashboard" element={<StaffOverview />} />
-                        <Route path="/job-verification" element={<StaffJobVerification />} />
-                        <Route path="/jobs" element={<StaffJobs />} />
-                        <Route path="/event-verification" element={<StaffEventVerification />} />
-                        <Route path="/events" element={<StaffEvents />} />
-                        <Route path="/alumni" element={<StaffAlumni />} />
+                        <Route path="/" element={<Navigate to="dashboard" replace />} />
+                        <Route path="dashboard" element={<StaffOverview />} />
+                        <Route path="job-approvals" element={<StaffJobVerification />} />
+                        <Route path="event-approvals" element={<StaffEventVerification />} />
+                        <Route path="events" element={<StaffEvents />} />
+                        <Route path="alumni" element={<StaffAlumni />} />
+                        <Route path="messages" element={<StaffMessages />} />
                     </Routes>
                 </main>
             </div>

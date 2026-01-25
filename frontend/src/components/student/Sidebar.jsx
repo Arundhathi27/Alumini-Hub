@@ -25,9 +25,8 @@ const Sidebar = () => {
         { icon: LayoutDashboard, label: 'Dashboard', path: '/student/dashboard' },
         { icon: Briefcase, label: 'Jobs', path: '/student/jobs' },
         { icon: Calendar, label: 'Events', path: '/student/events' },
-        { icon: Briefcase, label: 'Jobs', path: '/student/jobs' },
-        { icon: Calendar, label: 'Events', path: '/student/events' },
-        { icon: MessageCircle, label: 'Messages', path: '/student/messages' },
+        { icon: Users, label: 'Alumni Directory', path: '/student/alumni' },
+        { icon: MessageCircle, label: 'Messages', path: '/student/messages' }
     ];
 
     return (
@@ -43,7 +42,7 @@ const Sidebar = () => {
                         key={item.path}
                         to={item.path}
                         className={({ isActive }) =>
-                            isActive ? `${styles.navItem} ${styles.navItemActive}` : styles.navItem
+                            isActive ? `${styles.navItem} ${styles.navItemActive} ` : styles.navItem
                         }
                     >
                         <item.icon size={18} style={{ marginRight: '0.75rem' }} />

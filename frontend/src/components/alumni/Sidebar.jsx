@@ -6,6 +6,7 @@ import {
     Briefcase,
     Calendar,
     FileText,
+    MessageCircle,
     MessageSquare,
     LogOut,
     Award
@@ -24,12 +25,11 @@ const Sidebar = () => {
 
     const navItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/alumni/dashboard' },
-        { icon: User, label: 'My Profile', path: '/alumni/profile' },
-        { icon: Briefcase, label: 'Post Job', path: '/alumni/post-job' },
-        { icon: Calendar, label: 'Post Event', path: '/alumni/post-event' },
+        { icon: Briefcase, label: 'My Jobs', path: '/alumni/jobs/my-jobs' },
+        { icon: Calendar, label: 'My Events', path: '/alumni/events/my-events' },
+        { icon: User, label: 'Profile', path: '/alumni/profile' },
         { icon: FileText, label: 'My Posts', path: '/alumni/posts' },
-        { icon: FileText, label: 'My Events', path: '/alumni/my-events' },
-        { icon: MessageSquare, label: 'Messages', path: '/alumni/messages' },
+        { icon: MessageCircle, label: 'Messages', path: '/alumni/messages' }
     ];
 
     return (
