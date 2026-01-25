@@ -130,13 +130,13 @@ const AlumniMessages = () => {
                 display: 'grid',
                 gridTemplateColumns: '350px 1fr',
                 gap: '1.5rem',
-                height: 'calc(100vh - 300px)',
+                height: '75vh', // Fixed height relative to viewport
                 background: 'white',
                 borderRadius: '0.5rem',
                 boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
                 overflow: 'hidden'
             }}>
-                <div style={{ borderRight: '1px solid #e5e7eb', overflowY: 'auto' }}>
+                <div style={{ borderRight: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                     {loading ? (
                         <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
                             Loading...
@@ -146,14 +146,14 @@ const AlumniMessages = () => {
                             conversations={conversations}
                             selectedConversation={selectedConversation}
                             onSelectConversation={setSelectedConversation}
-                            currentUserId={currentUser.id}
+                            currentUserId={currentUser._id}
                         />
                     )}
                 </div>
 
                 <ChatWindow
                     conversation={selectedConversation}
-                    currentUserId={currentUser.id}
+                    currentUserId={currentUser._id}
                 />
             </div>
         </div>
