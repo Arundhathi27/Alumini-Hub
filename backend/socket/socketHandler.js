@@ -1,5 +1,6 @@
 const Message = require('../models/Message');
 const Conversation = require('../models/Conversation');
+const Notification = require('../models/Notification'); // Import Notification
 const jwt = require('jsonwebtoken');
 
 // JWT authentication middleware for Socket.io
@@ -113,6 +114,27 @@ const setupSocketHandlers = (io) => {
                 });
 
                 console.log(`Message sent in conversation ${conversationId}`);
+
+                // NOTIFICATION Trigger (New Message)
+                conversation.participants.forEach(async (participantId) => {
+                    if (participantId.toString() !== socket.userId.toString()) {
+                        try {
+                            const notification = await Notification.create({
+                                recipientId: participantId,
+                                senderId: socket.userId,
+                                type: 'message',
+                                title: 'New Message',
+                                message: `You have a new message.`,
+                                relatedId: conversationId
+                            });
+
+                            // Emit to specific user room
+                            io.to(`user:${participantId}`).emit('notification:new', notification);
+                        } catch (err) {
+                            console.error('Notification error:', err);
+                        }
+                    }
+                });
             } catch (error) {
                 console.error('Send message error:', error);
                 socket.emit('error', { message: 'Failed to send message' });

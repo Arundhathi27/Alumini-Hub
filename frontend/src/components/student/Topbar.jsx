@@ -1,6 +1,7 @@
 import React from 'react';
-import { Bell, User } from 'lucide-react';
+import { User } from 'lucide-react';
 import styles from '../../pages/student/StudentDashboard.module.css';
+import NotificationManager from '../notifications/NotificationManager';
 
 const Topbar = ({ title }) => {
     return (
@@ -8,9 +9,7 @@ const Topbar = ({ title }) => {
             <h2 className={styles.pageTitle}>{title}</h2>
 
             <div className={styles.profileSection}>
-                <div className={styles.iconButton}>
-                    <Bell size={20} />
-                </div>
+                <NotificationManager />
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <div className={styles.iconButton} style={{ background: '#e0f2fe', color: '#0ea5e9' }}>
                         <User size={20} />

@@ -5,6 +5,18 @@ class SocketService {
         this.socket = null;
     }
 
+    on(event, callback) {
+        if (this.socket) {
+            this.socket.on(event, callback);
+        }
+    }
+
+    off(event, callback) {
+        if (this.socket) {
+            this.socket.off(event, callback);
+        }
+    }
+
     connect(token) {
         if (this.socket?.connected) {
             return;

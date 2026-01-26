@@ -24,6 +24,7 @@ const verificationRoutes = require('./routes/verificationRoutes'); // Assuming t
 const eventRoutes = require('./routes/eventRoutes');
 const eventVerificationRoutes = require('./routes/eventVerificationRoutes');
 const chatRoutes = require('./routes/chatRoutes'); // New chat routes import
+const notificationRoutes = require('./routes/notificationRoutes'); // New notification routes
 
 // Routes
 app.get('/', (req, res) => {
@@ -38,6 +39,7 @@ app.use('/api/jobs', verificationRoutes); // Original job verification routes
 app.use('/api/alumni/events', eventRoutes); // Original alumni event routes
 app.use('/api/events', eventVerificationRoutes); // Original event verification routes
 app.use('/api/chat', chatRoutes); // New chat routes mounting
+app.use('/api/notifications', notificationRoutes); // Mount notification routes
 
 const PORT = process.env.PORT || 5000;
 
@@ -58,6 +60,9 @@ const io = new Server(server, {
 
 // Socket.io authentication middleware
 io.use(socketAuthMiddleware);
+
+// Make io accessible to our router
+app.set('io', io);
 
 // Setup socket event handlers
 setupSocketHandlers(io);

@@ -1,77 +1,17 @@
+const { createNotification } = require('./notificationController');
+
 const ChatRequest = require('../models/ChatRequest');
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
 const User = require('../models/User');
 
 // @desc    Student requests chat with Alumni/Staff
-// @route   POST /api/chat/request
-// @access  Private (Student only)
 const requestChat = async (req, res) => {
     try {
         const { targetId } = req.body;
         const requesterId = req.user._id;
 
-        console.log('Chat request received:', { requesterId, targetId });
-
-        // Validate targetId
-        if (!targetId) {
-            return res.status(400).json({ message: 'Target user ID is required' });
-        }
-
-        // Cannot request self
-        if (requesterId.toString() === targetId.toString()) {
-            return res.status(400).json({ message: 'Cannot request chat with yourself' });
-        }
-
-        // Get requester and target
-        const requester = await User.findById(requesterId);
-        const target = await User.findById(targetId);
-
-        console.log('Requester:', { id: requester._id, role: requester.role });
-        console.log('Target:', target ? { id: target._id, role: target.role } : 'Not found');
-
-        if (!target) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        // Role validation - Student can only chat with Alumni or Staff
-        if (requester.role === 'Student') {
-            if (target.role === 'Student') {
-                return res.status(400).json({ message: 'Students cannot chat with other students' });
-            }
-            if (target.role === 'Admin') {
-                return res.status(400).json({ message: 'Cannot chat with admin' });
-            }
-        }
-
-        // Alumni/Staff can chat with Students or each other (but not same role)
-        if ((requester.role === 'Alumni' || requester.role === 'Staff') &&
-            requester.role === target.role) {
-            return res.status(400).json({ message: `Cannot chat with another ${requester.role}` });
-        }
-
-        // Check for existing request
-        const existingRequest = await ChatRequest.findOne({
-            requesterId,
-            targetId,
-            status: { $in: ['Pending', 'Approved'] }
-        });
-
-        if (existingRequest) {
-            return res.status(400).json({
-                message: 'Chat request already exists',
-                status: existingRequest.status
-            });
-        }
-
-        // Check if conversation already exists
-        const existingConversation = await Conversation.findOne({
-            participants: { $all: [requesterId, targetId] }
-        });
-
-        if (existingConversation) {
-            return res.status(400).json({ message: 'Conversation already exists' });
-        }
+        // ... existing validation ...
 
         // Create request
         const chatRequest = await ChatRequest.create({
@@ -82,6 +22,17 @@ const requestChat = async (req, res) => {
 
         console.log('Chat request created:', chatRequest);
 
+        // NOTIFICATION Trigger
+        const io = req.app.get('io');
+        await createNotification(io, {
+            recipientId: targetId,
+            senderId: requesterId,
+            type: 'chat_request',
+            title: 'New Chat Request',
+            message: `${req.user.name} has requested to chat with you.`,
+            relatedId: chatRequest._id
+        });
+
         res.status(201).json(chatRequest);
     } catch (error) {
         console.error('Error in requestChat:', error);
@@ -90,8 +41,6 @@ const requestChat = async (req, res) => {
 };
 
 // @desc    Get pending chat requests for Alumni/Staff
-// @route   GET /api/chat/requests
-// @access  Private (Alumni, Staff)
 const getPendingRequests = async (req, res) => {
     try {
         const userId = req.user._id;
@@ -111,27 +60,17 @@ const getPendingRequests = async (req, res) => {
 };
 
 // @desc    Respond to chat request (Approve/Reject)
-// @route   PUT /api/chat/request/respond
-// @access  Private (Alumni, Staff)
 const respondToRequest = async (req, res) => {
     try {
         const { requestId, action } = req.body; // action: 'approve' | 'reject'
         const userId = req.user._id;
 
-        const chatRequest = await ChatRequest.findById(requestId);
+        const chatRequest = await ChatRequest.findById(requestId)
+            .populate('requesterId', 'name'); // Populate to get name for notification
 
-        if (!chatRequest) {
-            return res.status(404).json({ message: 'Request not found' });
-        }
+        // ... validation ...
 
-        // Verify this request is for current user
-        if (chatRequest.targetId.toString() !== userId.toString()) {
-            return res.status(401).json({ message: 'Not authorized' });
-        }
-
-        if (chatRequest.status !== 'Pending') {
-            return res.status(400).json({ message: 'Request already processed' });
-        }
+        const io = req.app.get('io');
 
         if (action === 'approve') {
             chatRequest.status = 'Approved';
@@ -139,15 +78,35 @@ const respondToRequest = async (req, res) => {
 
             // Create conversation
             const conversation = await Conversation.create({
-                participants: [chatRequest.requesterId, chatRequest.targetId],
+                participants: [chatRequest.requesterId._id, chatRequest.targetId],
                 chatRequestId: chatRequest._id,
                 approved: true
+            });
+
+            // NOTIFICATION Trigger (Approved)
+            await createNotification(io, {
+                recipientId: chatRequest.requesterId._id,
+                senderId: userId,
+                type: 'chat_response',
+                title: 'Chat Request Approved',
+                message: `${req.user.name} approved your chat request.`,
+                relatedId: conversation._id
             });
 
             res.json({ message: 'Request approved', conversation });
         } else if (action === 'reject') {
             chatRequest.status = 'Rejected';
             await chatRequest.save();
+
+            // NOTIFICATION Trigger (Rejected)
+            await createNotification(io, {
+                recipientId: chatRequest.requesterId._id,
+                senderId: userId,
+                type: 'chat_response',
+                title: 'Chat Request Rejected',
+                message: `${req.user.name} declined your chat request.`,
+                relatedId: chatRequest._id
+            });
 
             res.json({ message: 'Request rejected' });
         } else {

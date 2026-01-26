@@ -15,43 +15,49 @@ import AlumniDashboard from './pages/alumni/AlumniDashboard';
 import StudentDashboard from './pages/student/StudentDashboard';
 import StaffJobVerification from './pages/staff/StaffJobVerification';
 
+import { NotificationProvider } from './context/NotificationContext';
+
+// ... imports
+
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
-          {/* Public Route */}
-          <Route path="/" element={<LoginPage />} />
+      <NotificationProvider>
+        <Router>
+          <Routes>
+            {/* Public Route */}
+            <Route path="/" element={<LoginPage />} />
 
-          {/* Admin Routes */}
-          <Route element={<ProtectedRoute allowedRoles={['Admin']} />}>
-            <Route path="/admin/*" element={<AdminDashboard />} />
-          </Route>
+            {/* Admin Routes */}
+            <Route element={<ProtectedRoute allowedRoles={['Admin']} />}>
+              <Route path="/admin/*" element={<AdminDashboard />} />
+            </Route>
 
-          {/* Staff Routes */}
-          <Route element={<ProtectedRoute allowedRoles={['Staff']} />}>
-            <Route path="/staff/*" element={<StaffDashboard />} />
-          </Route>
+            {/* Staff Routes */}
+            <Route element={<ProtectedRoute allowedRoles={['Staff']} />}>
+              <Route path="/staff/*" element={<StaffDashboard />} />
+            </Route>
 
-          {/* Alumni Routes */}
-          <Route element={<ProtectedRoute allowedRoles={['Alumni']} />}>
-            <Route path="/alumni/profile" element={<ProfilePage />} />
-            <Route path="/alumni/post-job" element={<PostJob />} />
-            <Route path="/alumni/posts" element={<MyJobs />} />
-            <Route path="/alumni/post-event" element={<PostEvent />} />
-            <Route path="/alumni/my-events" element={<MyEvents />} />
-            <Route path="/alumni/*" element={<AlumniDashboard />} />
-          </Route>
+            {/* Alumni Routes */}
+            <Route element={<ProtectedRoute allowedRoles={['Alumni']} />}>
+              <Route path="/alumni/profile" element={<ProfilePage />} />
+              <Route path="/alumni/post-job" element={<PostJob />} />
+              <Route path="/alumni/posts" element={<MyJobs />} />
+              <Route path="/alumni/post-event" element={<PostEvent />} />
+              <Route path="/alumni/my-events" element={<MyEvents />} />
+              <Route path="/alumni/*" element={<AlumniDashboard />} />
+            </Route>
 
-          {/* Student Routes */}
-          <Route element={<ProtectedRoute allowedRoles={['Student']} />}>
-            <Route path="/student/*" element={<StudentDashboard />} />
-          </Route>
+            {/* Student Routes */}
+            <Route element={<ProtectedRoute allowedRoles={['Student']} />}>
+              <Route path="/student/*" element={<StudentDashboard />} />
+            </Route>
 
-          {/* Catch all - Redirect to login */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Router>
+            {/* Catch all - Redirect to login */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Router>
+      </NotificationProvider>
     </AuthProvider>
   );
 }

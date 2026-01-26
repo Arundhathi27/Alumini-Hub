@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNotifications } from '../../context/NotificationContext';
 import { Send, Check, CheckCheck, MoreVertical, Phone, Video } from 'lucide-react';
 import { chatService } from '../../services/chatService';
 import socketService from '../../services/socketService';
@@ -11,6 +12,7 @@ const ChatWindow = ({ conversation, currentUserId }) => {
     const [loading, setLoading] = useState(true);
     const [isOnline, setIsOnline] = useState(false); // New: Online status state
     const messagesEndRef = useRef(null);
+    const { markRelatedAsRead } = useNotifications();
 
     // Robust way to find the 'other' user. 
     const otherUser = conversation?.participants.find(p => String(p._id) !== String(currentUserId));
@@ -19,6 +21,9 @@ const ChatWindow = ({ conversation, currentUserId }) => {
         if (conversation) {
             loadMessages();
             socketService.joinConversation(conversation._id);
+
+            // Mark notifications for this conversation as read
+            markRelatedAsRead(conversation._id);
 
             // Listen for new messages
             socketService.onMessageReceived((message) => {

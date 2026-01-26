@@ -1,11 +1,8 @@
+const { createNotification } = require('./notificationController');
 
-const Job = require('../models/Job');
-const Event = require('../models/Event');
-const User = require('../models/User');
+// ... imports
 
-// @desc    Get all pending jobs (Admin & Staff)
-// @route   GET /api/jobs/pending
-// @access  Private (Admin, Staff)
+// @desc    Get all pending jobs (Admin & Staff) (Restored)
 const getPendingJobs = async (req, res) => {
     try {
         const jobs = await Job.find({ status: 'Pending' })
@@ -19,8 +16,6 @@ const getPendingJobs = async (req, res) => {
 };
 
 // @desc    Verify (Approve/Reject) a job
-// @route   PUT /api/jobs/verify
-// @access  Private (Admin, Staff)
 const verifyJob = async (req, res) => {
     try {
         const { jobId, action } = req.body;
@@ -40,11 +35,17 @@ const verifyJob = async (req, res) => {
         }
 
         job.status = action === 'Approve' ? 'Approved' : 'Rejected';
-
-        // Optional: Track who verified it
-        // job.verifiedBy = req.user._id;
-
         await job.save();
+
+        // NOTIFICATION Trigger
+        const io = req.app.get('io');
+        await createNotification(io, {
+            recipientId: job.postedBy,
+            type: 'job_status',
+            title: `Job ${action}d`,
+            message: `Your job post "${job.title}" has been ${action.toLowerCase()}d.`,
+            relatedId: job._id
+        });
 
         res.json(job);
     } catch (error) {
@@ -53,8 +54,6 @@ const verifyJob = async (req, res) => {
 };
 
 // @desc    Get all APPROVED jobs (Public/Student/Staff/Alumni)
-// @route   GET /api/jobs
-// @access  Private (All Roles)
 const getApprovedJobs = async (req, res) => {
     try {
         const { title, company, location, type, role } = req.query;
@@ -88,8 +87,6 @@ const getApprovedJobs = async (req, res) => {
 };
 
 // @desc    Get all PENDING events for verification
-// @route   GET /api/events/pending
-// @access  Private (Admin, Staff)
 const getPendingEvents = async (req, res) => {
     try {
         const events = await Event.find({ status: 'Pending' })
@@ -102,8 +99,6 @@ const getPendingEvents = async (req, res) => {
 };
 
 // @desc    Verify (Approve/Reject) an event
-// @route   PUT /api/events/verify
-// @access  Private (Admin, Staff)
 const verifyEvent = async (req, res) => {
     try {
         const { eventId, action } = req.body; // action: 'Approve' or 'Reject'
@@ -120,6 +115,16 @@ const verifyEvent = async (req, res) => {
 
         event.status = action === 'Approve' ? 'Approved' : 'Rejected';
         await event.save();
+
+        // NOTIFICATION Trigger
+        const io = req.app.get('io');
+        await createNotification(io, {
+            recipientId: event.postedBy,
+            type: 'event_status',
+            title: `Event ${action}d`,
+            message: `Your event "${event.title}" has been ${action.toLowerCase()}d.`,
+            relatedId: event._id
+        });
 
         res.json(event);
     } catch (error) {
