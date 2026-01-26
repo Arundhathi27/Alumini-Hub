@@ -1,6 +1,8 @@
 const { createNotification } = require('./notificationController');
 
-// ... imports
+const Job = require('../models/Job');
+const Event = require('../models/Event');
+const User = require('../models/User');
 
 // @desc    Get all pending jobs (Admin & Staff) (Restored)
 const getPendingJobs = async (req, res) => {
@@ -37,15 +39,30 @@ const verifyJob = async (req, res) => {
         job.status = action === 'Approve' ? 'Approved' : 'Rejected';
         await job.save();
 
-        // NOTIFICATION Trigger
+        // NOTIFICATION Trigger (Alumni)
         const io = req.app.get('io');
         await createNotification(io, {
-            recipientId: job.postedBy,
+            recipientId: job.postedBy._id || job.postedBy, // Ensure ID availability
             type: 'job_status',
             title: `Job ${action}d`,
             message: `Your job post "${job.title}" has been ${action.toLowerCase()}d.`,
             relatedId: job._id
         });
+
+        // NOTIFICATION Trigger (Students - Only on Approve)
+        if (action === 'Approve') {
+            const students = await User.find({ role: 'Student' });
+            console.log(`Notifying ${students.length} students about new job: ${job.title}`);
+            for (const student of students) {
+                await createNotification(io, {
+                    recipientId: student._id,
+                    type: 'job_alert',
+                    title: 'New Job Opportunity',
+                    message: `A new job "${job.title}" at ${job.company} has been posted.`,
+                    relatedId: job._id
+                });
+            }
+        }
 
         res.json(job);
     } catch (error) {
@@ -57,6 +74,8 @@ const verifyJob = async (req, res) => {
 const getApprovedJobs = async (req, res) => {
     try {
         const { title, company, location, type, role } = req.query;
+
+        console.log('Fetching Approved Jobs with query params:', req.query);
 
         let query = { status: 'Approved' };
 
@@ -116,7 +135,7 @@ const verifyEvent = async (req, res) => {
         event.status = action === 'Approve' ? 'Approved' : 'Rejected';
         await event.save();
 
-        // NOTIFICATION Trigger
+        // NOTIFICATION Trigger (Alumni)
         const io = req.app.get('io');
         await createNotification(io, {
             recipientId: event.postedBy,
@@ -125,6 +144,21 @@ const verifyEvent = async (req, res) => {
             message: `Your event "${event.title}" has been ${action.toLowerCase()}d.`,
             relatedId: event._id
         });
+
+        // NOTIFICATION Trigger (Students - Only on Approve)
+        if (action === 'Approve') {
+            const students = await User.find({ role: 'Student' });
+            console.log(`Notifying ${students.length} students about new event: ${event.title}`);
+            for (const student of students) {
+                await createNotification(io, {
+                    recipientId: student._id,
+                    type: 'event_alert',
+                    title: 'New Event',
+                    message: `A new event "${event.title}" has been scheduled. Check it out!`,
+                    relatedId: event._id
+                });
+            }
+        }
 
         res.json(event);
     } catch (error) {

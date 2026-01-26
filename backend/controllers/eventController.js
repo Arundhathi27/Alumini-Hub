@@ -1,4 +1,6 @@
 const Event = require('../models/Event');
+const User = require('../models/User');
+const { createNotification } = require('./notificationController');
 
 // @desc    Create a new event
 // @route   POST /api/alumni/events
@@ -41,6 +43,21 @@ const createEvent = async (req, res) => {
             postedBy: req.user._id,
             status: 'Pending'
         });
+
+        // NOTIFICATION Trigger (Notify Admins & Staff)
+        const io = req.app.get('io');
+        const adminsAndStaff = await User.find({ role: { $in: ['Admin', 'Staff'] } });
+
+        for (const admin of adminsAndStaff) {
+            await createNotification(io, {
+                recipientId: admin._id,
+                senderId: req.user._id,
+                type: 'event_status',
+                title: 'New Event Approval Request',
+                message: `${req.user.name} posted a new event: "${event.title}". Verification required.`,
+                relatedId: event._id
+            });
+        }
 
         res.status(201).json(event);
 

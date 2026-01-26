@@ -5,15 +5,9 @@ import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import StaffDashboard from './pages/staff/StaffDashboard';
-import ProfilePage from './pages/alumni/ProfilePage';
-import PostJob from './pages/alumni/PostJob';
-import MyJobs from './pages/alumni/MyJobs';
-import PostEvent from './pages/alumni/PostEvent';
-import MyEvents from './pages/alumni/MyEvents';
 
 import AlumniDashboard from './pages/alumni/AlumniDashboard';
 import StudentDashboard from './pages/student/StudentDashboard';
-import StaffJobVerification from './pages/staff/StaffJobVerification';
 
 import { NotificationProvider } from './context/NotificationContext';
 
@@ -40,11 +34,6 @@ function App() {
 
             {/* Alumni Routes */}
             <Route element={<ProtectedRoute allowedRoles={['Alumni']} />}>
-              <Route path="/alumni/profile" element={<ProfilePage />} />
-              <Route path="/alumni/post-job" element={<PostJob />} />
-              <Route path="/alumni/posts" element={<MyJobs />} />
-              <Route path="/alumni/post-event" element={<PostEvent />} />
-              <Route path="/alumni/my-events" element={<MyEvents />} />
               <Route path="/alumni/*" element={<AlumniDashboard />} />
             </Route>
 

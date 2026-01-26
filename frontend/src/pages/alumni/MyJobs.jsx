@@ -185,91 +185,83 @@ const MyJobs = () => {
     };
 
     return (
-        <div className={dashboardStyles.layout}>
-            <Sidebar />
-            <div className={dashboardStyles.mainWrapper}>
-                <Topbar title="My Job Posts" />
-                <main className={dashboardStyles.content}>
-
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.5rem' }}>
-                        <button
-                            className={dashboardStyles.btnPrimary}
-                            onClick={() => navigate('/alumni/post-job')}
-                        >
-                            <Plus size={18} style={{ marginRight: '0.5rem' }} /> Post New Job
-                        </button>
-                    </div>
-
-                    <div className={dashboardStyles.tableContainer}>
-                        <table className={dashboardStyles.table}>
-                            <thead>
-                                <tr className={dashboardStyles.tr}>
-                                    <th className={dashboardStyles.th}>Job Title</th>
-                                    <th className={dashboardStyles.th}>Company</th>
-                                    <th className={dashboardStyles.th}>Posted Date</th>
-                                    <th className={dashboardStyles.th}>Status</th>
-                                    <th className={dashboardStyles.th}>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {loading ? (
-                                    <tr><td colSpan="5" className={dashboardStyles.td} style={{ textAlign: 'center' }}>Loading...</td></tr>
-                                ) : jobs.length === 0 ? (
-                                    <tr><td colSpan="5" className={dashboardStyles.td} style={{ textAlign: 'center' }}>No jobs posted yet.</td></tr>
-                                ) : (
-                                    jobs.map((job) => (
-                                        <tr key={job._id} className={dashboardStyles.tr}>
-                                            <td className={dashboardStyles.td} style={{ fontWeight: 500 }}>{job.title}</td>
-                                            <td className={dashboardStyles.td}>{job.company}</td>
-                                            <td className={dashboardStyles.td}>{new Date(job.createdAt).toLocaleDateString()}</td>
-                                            <td className={dashboardStyles.td}>
-                                                <span className={`${dashboardStyles.badge} ${job.status === 'Approved' ? dashboardStyles.badgeApproved :
-                                                    job.status === 'Pending' ? dashboardStyles.badgePending :
-                                                        dashboardStyles.badgeRejected
-                                                    }`}>
-                                                    {job.status}
-                                                </span>
-                                            </td>
-                                            <td className={dashboardStyles.td}>
-                                                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                                    <button
-                                                        className={dashboardStyles.btnOutline}
-                                                        onClick={() => setViewJob(job)}
-                                                        title="View"
-                                                        style={{ padding: '0.4rem' }}
-                                                    >
-                                                        <Eye size={16} />
-                                                    </button>
-                                                    <button
-                                                        className={dashboardStyles.btnOutline}
-                                                        onClick={() => setEditJob(job)}
-                                                        title="Edit"
-                                                        disabled={job.status !== 'Pending'}
-                                                        style={{
-                                                            padding: '0.4rem',
-                                                            opacity: job.status !== 'Pending' ? 0.5 : 1,
-                                                            cursor: job.status !== 'Pending' ? 'not-allowed' : 'pointer',
-                                                            color: job.status === 'Pending' ? '#0284c7' : 'inherit',
-                                                            borderColor: job.status === 'Pending' ? '#0284c7' : 'inherit'
-                                                        }}
-                                                    >
-                                                        <Edit size={16} />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {viewJob && <JobDetailsModal job={viewJob} onClose={() => setViewJob(null)} />}
-                    {editJob && <EditJobModal job={editJob} onClose={() => setEditJob(null)} onUpdate={fetchJobs} />}
-
-                </main>
+        <>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.5rem' }}>
+                <button
+                    className={dashboardStyles.btnPrimary}
+                    onClick={() => navigate('/alumni/post-job')}
+                >
+                    <Plus size={18} style={{ marginRight: '0.5rem' }} /> Post New Job
+                </button>
             </div>
-        </div>
+
+            <div className={dashboardStyles.tableContainer}>
+                <table className={dashboardStyles.table}>
+                    <thead>
+                        <tr className={dashboardStyles.tr}>
+                            <th className={dashboardStyles.th}>Job Title</th>
+                            <th className={dashboardStyles.th}>Company</th>
+                            <th className={dashboardStyles.th}>Posted Date</th>
+                            <th className={dashboardStyles.th}>Status</th>
+                            <th className={dashboardStyles.th}>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {loading ? (
+                            <tr><td colSpan="5" className={dashboardStyles.td} style={{ textAlign: 'center' }}>Loading...</td></tr>
+                        ) : jobs.length === 0 ? (
+                            <tr><td colSpan="5" className={dashboardStyles.td} style={{ textAlign: 'center' }}>No jobs posted yet.</td></tr>
+                        ) : (
+                            jobs.map((job) => (
+                                <tr key={job._id} className={dashboardStyles.tr}>
+                                    <td className={dashboardStyles.td} style={{ fontWeight: 500 }}>{job.title}</td>
+                                    <td className={dashboardStyles.td}>{job.company}</td>
+                                    <td className={dashboardStyles.td}>{new Date(job.createdAt).toLocaleDateString()}</td>
+                                    <td className={dashboardStyles.td}>
+                                        <span className={`${dashboardStyles.badge} ${job.status === 'Approved' ? dashboardStyles.badgeApproved :
+                                            job.status === 'Pending' ? dashboardStyles.badgePending :
+                                                dashboardStyles.badgeRejected
+                                            }`}>
+                                            {job.status}
+                                        </span>
+                                    </td>
+                                    <td className={dashboardStyles.td}>
+                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <button
+                                                className={dashboardStyles.btnOutline}
+                                                onClick={() => setViewJob(job)}
+                                                title="View"
+                                                style={{ padding: '0.4rem' }}
+                                            >
+                                                <Eye size={16} />
+                                            </button>
+                                            <button
+                                                className={dashboardStyles.btnOutline}
+                                                onClick={() => setEditJob(job)}
+                                                title="Edit"
+                                                disabled={job.status !== 'Pending'}
+                                                style={{
+                                                    padding: '0.4rem',
+                                                    opacity: job.status !== 'Pending' ? 0.5 : 1,
+                                                    cursor: job.status !== 'Pending' ? 'not-allowed' : 'pointer',
+                                                    color: job.status === 'Pending' ? '#0284c7' : 'inherit',
+                                                    borderColor: job.status === 'Pending' ? '#0284c7' : 'inherit'
+                                                }}
+                                            >
+                                                <Edit size={16} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+            </div>
+
+            {viewJob && <JobDetailsModal job={viewJob} onClose={() => setViewJob(null)} />}
+            {editJob && <EditJobModal job={editJob} onClose={() => setEditJob(null)} onUpdate={fetchJobs} />}
+        </>
     );
 };
 

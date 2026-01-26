@@ -4,6 +4,12 @@ import { Briefcase, Calendar, MessageSquare, Edit3, CheckCircle, Shield } from '
 import Sidebar from '../../components/alumni/Sidebar';
 import Topbar from '../../components/alumni/Topbar';
 import AlumniMessages from './AlumniMessages';
+import PostJob from './PostJob';
+import PostEvent from './PostEvent';
+import MyJobs from './MyJobs';
+import MyEvents from './MyEvents';
+import ProfilePage from './ProfilePage';
+import MyPosts from './MyPosts';
 import styles from './AlumniDashboard.module.css';
 import { useAuth } from '../../context/AuthContext';
 
@@ -140,7 +146,13 @@ const AlumniDashboard = () => {
                     <Routes>
                         <Route path="/" element={<Navigate to="dashboard" replace />} />
                         <Route path="dashboard" element={<AlumniOverview />} />
+                        <Route path="post-job" element={<PostJob />} />
+                        <Route path="post-event" element={<PostEvent />} />
+                        <Route path="jobs/my-jobs" element={<MyJobs />} />
+                        <Route path="events/my-events" element={<MyEvents />} />
+                        <Route path="profile" element={<ProfilePage />} />
                         <Route path="messages" element={<AlumniMessages />} />
+                        <Route path="posts" element={<MyPosts />} />
                     </Routes>
                 </main>
             </div>

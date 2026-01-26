@@ -1,5 +1,6 @@
 const Job = require('../models/Job');
-const User = require('../models/User'); // Import User to populate if needed
+const User = require('../models/User');
+const { createNotification } = require('./notificationController');
 
 // @desc    Create a new job post
 // @route   POST /api/alumni/jobs
@@ -40,6 +41,21 @@ const createJob = async (req, res) => {
             postedBy: req.user._id,
             status: 'Pending'
         });
+
+        // NOTIFICATION Trigger (Notify Admins & Staff)
+        const io = req.app.get('io');
+        const adminsAndStaff = await User.find({ role: { $in: ['Admin', 'Staff'] } });
+
+        for (const admin of adminsAndStaff) {
+            await createNotification(io, {
+                recipientId: admin._id,
+                senderId: req.user._id,
+                type: 'job_status',
+                title: 'New Job Approval Request',
+                message: `${req.user.name} posted a new job: "${job.title}". Verification required.`,
+                relatedId: job._id
+            });
+        }
 
         res.status(201).json(job);
 
