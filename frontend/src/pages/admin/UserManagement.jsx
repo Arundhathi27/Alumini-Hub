@@ -192,6 +192,26 @@ const UserManagement = () => {
         }
     };
 
+    const handleBulkDelete = async () => {
+        if (selectedUsers.length === 0) {
+            alert('Please select users first');
+            return;
+        }
+
+        if (!window.confirm(`Are you sure you want to PERMANENTLY DELETE ${selectedUsers.length} user(s)? This action cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            await adminService.bulkDeleteUsers(selectedUsers);
+            setSelectedUsers([]);
+            fetchUsers();
+            alert(`Successfully deleted selected users`);
+        } catch (error) {
+            alert(error.message);
+        }
+    };
+
     // Export Functions
     const handleExportExcel = () => {
         const dataToExport = getFilteredUsers().map(user => ({
@@ -620,6 +640,13 @@ const UserManagement = () => {
                                                 </button>
                                             </>
                                         )}
+                                        <button
+                                            onClick={handleBulkDelete}
+                                            className={styles.actionBtn}
+                                            style={{ background: '#ef4444', color: 'white', padding: '5px 10px', width: 'auto' }}
+                                        >
+                                            <Trash2 size={16} /> Delete Selected
+                                        </button>
                                     </div>
                                 </motion.div>
                             )}

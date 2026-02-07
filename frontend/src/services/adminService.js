@@ -162,5 +162,20 @@ export const adminService = {
         } catch (error) {
             throw error;
         }
+    },
+
+    bulkDeleteUsers: async (userIds) => {
+        try {
+            const response = await fetch(`${API_URL}/users/bulk-delete`, {
+                method: 'DELETE',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ userIds }),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'Failed to delete users');
+            return data;
+        } catch (error) {
+            throw error;
+        }
     }
 };

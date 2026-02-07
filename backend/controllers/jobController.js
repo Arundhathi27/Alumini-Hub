@@ -1,6 +1,7 @@
 const Job = require('../models/Job');
 const User = require('../models/User');
 const { createNotification } = require('./notificationController');
+const sendEmail = require('../utils/emailService');
 
 // @desc    Create a new job post
 // @route   POST /api/alumni/jobs
@@ -45,6 +46,29 @@ const createJob = async (req, res) => {
         // NOTIFICATION Trigger (Notify Admins & Staff)
         const io = req.app.get('io');
         const adminsAndStaff = await User.find({ role: { $in: ['Admin', 'Staff'] } });
+
+        // Send Email to Staff
+        const staffUsers = adminsAndStaff.filter(u => u.role === 'Staff');
+        const staffEmails = staffUsers.map(u => u.email);
+
+        if (staffEmails.length > 0) {
+            const emailSubject = 'New Job Posting Pending Approval';
+            const emailHtml = `
+                <h2>New Pending Job Post</h2>
+                <p>Alumni <strong>${req.user.name}</strong> has posted a new job:</p>
+                <ul>
+                    <li><strong>Title:</strong> ${title}</li>
+                    <li><strong>Company:</strong> ${company}</li>
+                    <li><strong>Role:</strong> ${role}</li>
+                </ul>
+                <p>Please log in to the Staff Dashboard to review and approve this job.</p>
+                <p><a href="http://localhost:5173/admin">Go to Dashboard</a></p>
+            `;
+            // Sending individually to ensure delivery, or could use BCC
+            for (const email of staffEmails) {
+                await sendEmail({ to: email, subject: emailSubject, html: emailHtml });
+            }
+        }
 
         for (const admin of adminsAndStaff) {
             await createNotification(io, {
@@ -106,7 +130,7 @@ const getAllJobs = async (req, res) => {
 const updateJobStatus = async (req, res) => {
     try {
         const { status } = req.body; // 'Approved' or 'Rejected'
-        const job = await Job.findById(req.params.id);
+        const job = await Job.findById(req.params.id).populate('postedBy', 'name');
 
         if (!job) {
             return res.status(404).json({ message: 'Job not found' });
@@ -114,6 +138,30 @@ const updateJobStatus = async (req, res) => {
 
         job.status = status;
         await job.save();
+
+        if (status === 'Approved') {
+            // Send Email to All Students and Staff
+            const recipients = await User.find({ role: { $in: ['Student', 'Staff'] } });
+
+            // To avoid spamming/rate limits, we iterate. In production, use a queue.
+            const emailSubject = 'New Job Opportunity Alert!';
+            const emailHtml = `
+                <h2>New Job Opening: ${job.title}</h2>
+                <p>A new job has been posted by Alumni <strong>${job.postedBy.name}</strong> at <strong>${job.company}</strong>.</p>
+                <p><strong>Role:</strong> ${job.role}</p>
+                <p><strong>Location:</strong> ${job.location}</p>
+                <p><strong>Experience:</strong> ${job.experience}</p>
+                <p><strong>Skills:</strong> ${job.skills}</p>
+                <br/>
+                <p>Check out the full details and apply now!</p>
+                <p><a href="http://localhost:5173/jobs">View Job</a></p>
+                <p><a href="${job.applyLink}" target="_blank">Apply Directly</a></p>
+            `;
+
+            for (const user of recipients) {
+                await sendEmail({ to: user.email, subject: emailSubject, html: emailHtml });
+            }
+        }
 
         res.json(job);
     } catch (error) {

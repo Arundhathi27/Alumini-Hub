@@ -3,6 +3,8 @@ const Department = require('../models/Department');
 const bcrypt = require('bcryptjs');
 const xlsx = require('xlsx');
 
+const sendEmail = require('../utils/emailService');
+
 // @desc    Create a new user (Staff, Student, Alumni)
 // @route   POST /api/admin/create-user
 // @access  Private/Admin
@@ -17,12 +19,6 @@ const createUser = async (req, res) => {
         }
 
         // Set default isVerified based on role
-        // Staff/Student/Admin are verified by default if created by Admin
-        // Alumni created by Admin are also verified (usually) but let's stick to the rule: 
-        // "Newly created Alumni must be isVerified = false" unless explicitly overridden, 
-        // but typically admin creation implies trust. However, the requirement says "Newly created Alumni must be isVerified = false".
-        // Let's check requirements: "Newly created Alumni must be isVerified = false". OK.
-
         let isVerified = true;
         if (role === 'Alumni') {
             isVerified = false;
@@ -39,6 +35,38 @@ const createUser = async (req, res) => {
         });
 
         if (user) {
+            // Send Welcome Email
+            const emailSubject = 'Welcome to Alumni Hub - Your Account Details';
+            const emailHtml = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+                <h2 style="color: #4f46e5; text-align: center;">Welcome to Alumni Hub!</h2>
+                <p>Dear <strong>${name}</strong>,</p>
+                <p>Your account has been successfully created by the administrator.</p>
+
+                <div style="background-color: #f3f4f6; padding: 20px; border-radius: 5px; margin: 25px 0; border-left: 5px solid #4f46e5;">
+                    <h3 style="margin-top: 0; color: #1f2937; margin-bottom: 15px;">Your Login Credentials</h3>
+                    <p style="margin: 10px 0; font-size: 16px;"><strong>Mail ID:</strong> <span style="color: #374151;">${email}</span></p>
+                    <p style="margin: 10px 0; font-size: 16px;"><strong>Password:</strong> <span style="font-family: monospace; background: #e5e7eb; padding: 2px 6px; border-radius: 4px;">${password}</span></p>
+                    <p style="margin: 10px 0; font-size: 14px; color: #6b7280;"><strong>Role:</strong> ${role}</p>
+                </div>
+
+                <p><strong>Next Steps:</strong></p>
+                <ol>
+                    <li>Login to your account using the credentials above.</li>
+                    <li>Update your profile information.</li>
+                    <li>Change your password for security purposes.</li>
+                </ol>
+
+                <div style="text-align: center; margin-top: 30px;">
+                    <a href="http://localhost:5173/login" style="background-color: #4f46e5; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Login to Dashboard</a>
+                </div>
+
+                <hr style="margin-top: 30px; border: none; border-top: 1px solid #e0e0e0;">
+                    <p style="font-size: 12px; color: #6b7280; text-align: center;">This is an automated message. Please do not reply to this email.</p>
+            </div>
+            `;
+            await sendEmail({ to: email, subject: emailSubject, html: emailHtml });
+
             res.status(201).json({
                 _id: user._id,
                 name: user.name,
@@ -90,6 +118,40 @@ const verifyAlumni = async (req, res) => {
             // For now, toggle verification.
 
             const updatedUser = await user.save();
+
+            if (updatedUser.isVerified) {
+                const emailSubject = 'Account Verified - Alumni Hub';
+                const emailHtml = `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+                        <h2 style="color: #10b981; text-align: center;">Account Verified!</h2>
+                        <p>Dear <strong>${user.name}</strong>,</p>
+                        <p>Great news! Your alumni account has been <strong>verified</strong> by the administrator.</p>
+                        
+                        <div style="background-color: #ecfdf5; padding: 20px; border-radius: 5px; margin: 25px 0; border-left: 5px solid #10b981;">
+                            <h3 style="margin-top: 0; color: #064e3b; margin-bottom: 15px;">Your Login Credentials</h3>
+                            <p style="margin: 10px 0; font-size: 16px;"><strong>Mail ID:</strong> <span style="color: #374151;">${user.email}</span></p>
+                            <p style="margin: 10px 0; font-size: 16px;"><strong>Password:</strong> <span style="font-family: monospace; background: #e5e7eb; padding: 2px 6px; border-radius: 4px;">user@123</span></p>
+                            <p style="margin: 10px 0; font-size: 14px; color: #6b7280;">(Use this default password if you haven't set one yet)</p>
+                        </div>
+
+                        <p>You now have full access to the Alumni Hub features, including:</p>
+                        <ul>
+                            <li>Posting new job opportunities</li>
+                            <li>Connecting with other alumni</li>
+                            <li>Mentoring students</li>
+                        </ul>
+                        
+                        <div style="text-align: center; margin-top: 30px;">
+                            <a href="http://localhost:5173/login" style="background-color: #10b981; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Access Your Account</a>
+                        </div>
+                         
+                        <hr style="margin-top: 30px; border: none; border-top: 1px solid #e0e0e0;">
+                        <p style="font-size: 12px; color: #6b7280; text-align: center;">Thank you for being a valued member of our alumni community.</p>
+                    </div>
+                `;
+                await sendEmail({ to: user.email, subject: emailSubject, html: emailHtml });
+            }
+
             res.json(updatedUser);
         } else {
             res.status(404).json({ message: 'User not found' });
@@ -385,10 +447,71 @@ const bulkVerifyUsers = async (req, res) => {
             { $set: { isVerified } }
         );
 
+        // Send emails if verifying
+        if (isVerified) {
+            const users = await User.find({ _id: { $in: userIds } });
+            const emailSubject = 'Account Verified - Alumni Hub';
+
+            for (const user of users) {
+                const emailHtml = `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+                        <h2 style="color: #10b981; text-align: center;">Account Verified!</h2>
+                        <p>Dear <strong>${user.name}</strong>,</p>
+                        <p>Great news! Your alumni account has been <strong>verified</strong> by the administrator.</p>
+                        
+                        <div style="background-color: #ecfdf5; padding: 20px; border-radius: 5px; margin: 25px 0; border-left: 5px solid #10b981;">
+                            <h3 style="margin-top: 0; color: #064e3b; margin-bottom: 15px;">Your Login Credentials</h3>
+                            <p style="margin: 10px 0; font-size: 16px;"><strong>Mail ID:</strong> <span style="color: #374151;">${user.email}</span></p>
+                            <p style="margin: 10px 0; font-size: 16px;"><strong>Password:</strong> <span style="font-family: monospace; background: #e5e7eb; padding: 2px 6px; border-radius: 4px;">user@123</span></p>
+                            <p style="margin: 10px 0; font-size: 14px; color: #6b7280;">(Use this default password if you haven't set one yet)</p>
+                        </div>
+
+                         <p>You now have full access to the Alumni Hub features, including:</p>
+                        <ul>
+                            <li>Posting new job opportunities</li>
+                            <li>Connecting with other alumni</li>
+                            <li>Mentoring students</li>
+                        </ul>
+                        
+                        <div style="text-align: center; margin-top: 30px;">
+                            <a href="http://localhost:5173/login" style="background-color: #10b981; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Access Your Account</a>
+                        </div>
+                        
+                        <hr style="margin-top: 30px; border: none; border-top: 1px solid #e0e0e0;">
+                        <p style="font-size: 12px; color: #6b7280; text-align: center;">Thank you for being a valued member of our alumni community.</p>
+                    </div>
+                `;
+                await sendEmail({ to: user.email, subject: emailSubject, html: emailHtml });
+            }
+        }
+
         res.json({
             success: true,
             modified: result.modifiedCount,
             message: `${result.modifiedCount} user(s) ${isVerified ? 'verified' : 'unverified'} successfully`
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Bulk Delete Users
+// @route   DELETE /api/admin/users/bulk-delete
+// @access  Private/Admin
+const bulkDeleteUsers = async (req, res) => {
+    try {
+        const { userIds } = req.body;
+
+        if (!Array.isArray(userIds) || userIds.length === 0) {
+            return res.status(400).json({ message: 'User IDs array is required' });
+        }
+
+        const result = await User.deleteMany({ _id: { $in: userIds } });
+
+        res.json({
+            success: true,
+            deleted: result.deletedCount,
+            message: `${result.deletedCount} user(s) deleted successfully`
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -405,5 +528,6 @@ module.exports = {
     updateUser,
     deleteUser,
     bulkUploadUsers,
-    bulkVerifyUsers
+    bulkVerifyUsers,
+    bulkDeleteUsers
 };
