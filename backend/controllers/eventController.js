@@ -1,6 +1,7 @@
 const Event = require('../models/Event');
 const User = require('../models/User');
 const { createNotification } = require('./notificationController');
+const sendEmail = require('../utils/emailService');
 
 // @desc    Create a new event
 // @route   POST /api/alumni/events
@@ -47,6 +48,28 @@ const createEvent = async (req, res) => {
         // NOTIFICATION Trigger (Notify Admins & Staff)
         const io = req.app.get('io');
         const adminsAndStaff = await User.find({ role: { $in: ['Admin', 'Staff'] } });
+
+        // Send Email to Admin Only
+        const adminUsers = adminsAndStaff.filter(u => u.role === 'Admin');
+        const adminEmails = adminUsers.map(u => u.email);
+
+        if (adminEmails.length > 0) {
+            const emailSubject = 'New Event Posting Pending Approval';
+            const emailHtml = `
+                <h2>New Pending Event Post</h2>
+                <p>Alumni <strong>${req.user.name}</strong> has posted a new event:</p>
+                <ul>
+                    <li><strong>Title:</strong> ${title}</li>
+                    <li><strong>Type:</strong> ${type}</li>
+                    <li><strong>Date:</strong> ${new Date(date).toLocaleDateString()}</li>
+                </ul>
+                <p>Please log in to the Admin Dashboard to review and verify this event.</p>
+                <p><a href="http://localhost:5173/admin">Go to Dashboard</a></p>
+            `;
+            for (const email of adminEmails) {
+                await sendEmail({ to: email, subject: emailSubject, html: emailHtml });
+            }
+        }
 
         for (const admin of adminsAndStaff) {
             await createNotification(io, {

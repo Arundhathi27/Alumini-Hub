@@ -13,7 +13,7 @@ const NotificationSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['chat_request', 'chat_response', 'message', 'job_status', 'event_status', 'system'],
+        enum: ['chat_request', 'chat_response', 'message', 'job_status', 'event_status', 'system', 'job_alert', 'event_alert'],
         required: true
     },
     title: {

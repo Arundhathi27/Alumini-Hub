@@ -1,4 +1,5 @@
 const { createNotification } = require('./notificationController');
+const sendEmail = require('../utils/emailService');
 
 const Job = require('../models/Job');
 const Event = require('../models/Event');
@@ -149,7 +150,25 @@ const verifyEvent = async (req, res) => {
         if (action === 'Approve') {
             const students = await User.find({ role: 'Student' });
             console.log(`Notifying ${students.length} students about new event: ${event.title}`);
+
+            // Send Email to All Students
+            const emailSubject = 'New Event Alert!';
+            const emailHtml = `
+                <h2>New Event: ${event.title}</h2>
+                <p>A new event has been scheduled. Check it out!</p>
+                <ul>
+                    <li><strong>Title:</strong> ${event.title}</li>
+                    <li><strong>Type:</strong> ${event.type}</li>
+                    <li><strong>Date:</strong> ${new Date(event.date).toLocaleDateString()}</li>
+                    <li><strong>Time:</strong> ${event.time}</li>
+                    <li><strong>Mode:</strong> ${event.mode}</li>
+                </ul>
+                <p>Log in to the portal for more details.</p>
+                <p><a href="http://localhost:5173/login">Go to Login</a></p>
+            `;
+
             for (const student of students) {
+                // Send In-App Notification
                 await createNotification(io, {
                     recipientId: student._id,
                     type: 'event_alert',
@@ -157,6 +176,9 @@ const verifyEvent = async (req, res) => {
                     message: `A new event "${event.title}" has been scheduled. Check it out!`,
                     relatedId: event._id
                 });
+
+                // Send Email
+                await sendEmail({ to: student.email, subject: emailSubject, html: emailHtml });
             }
         }
 
