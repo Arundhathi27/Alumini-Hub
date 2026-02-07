@@ -147,5 +147,20 @@ export const adminService = {
         } catch (error) {
             throw error;
         }
+    },
+
+    bulkVerifyUsers: async (userIds, isVerified) => {
+        try {
+            const response = await fetch(`${API_URL}/users/bulk-verify`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ userIds, isVerified }),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'Failed to verify users');
+            return data;
+        } catch (error) {
+            throw error;
+        }
     }
 };

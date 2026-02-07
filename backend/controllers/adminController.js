@@ -238,7 +238,18 @@ const bulkUploadUsers = async (req, res) => {
         const { role } = req.body; // 'Alumni', 'Student', 'Staff' passed from frontend
 
         for (const [index, row] of data.entries()) {
-            const { Name, Email, Department: DeptName, Batch, Role: fileRole } = row;
+            const {
+                Name,
+                Email,
+                'Register No.': RegisterNo,
+                Department: DeptName,
+                Batch,
+                'Date of Birth': DOB,
+                'Full Address': FullAddr,
+                'Blood Group': BloodGrp,
+                'Phone Number': Phone,
+                Role: fileRole
+            } = row;
             // Use role from file if present, else from request body
             const userRole = fileRole || role;
 
@@ -247,6 +258,25 @@ const bulkUploadUsers = async (req, res) => {
                 report.failed++;
                 report.errors.push(`Row ${index + 2}: Missing Name or Email`);
                 continue;
+            }
+
+            // Additional validation for Alumni
+            if (userRole === 'Alumni') {
+                if (!RegisterNo) {
+                    report.failed++;
+                    report.errors.push(`Row ${index + 2}: Missing Register No. for Alumni`);
+                    continue;
+                }
+                if (!Phone) {
+                    report.failed++;
+                    report.errors.push(`Row ${index + 2}: Missing Phone Number for Alumni`);
+                    continue;
+                }
+                if (!DOB) {
+                    report.failed++;
+                    report.errors.push(`Row ${index + 2}: Missing Date of Birth for Alumni`);
+                    continue;
+                }
             }
 
             try {
@@ -258,12 +288,48 @@ const bulkUploadUsers = async (req, res) => {
                     continue;
                 }
 
+                // Parse Date of Birth if provided
+                let parsedDOB = null;
+                if (DOB) {
+                    // Handle Excel date formats (can be serial number or string)
+                    if (typeof DOB === 'number') {
+                        // Excel serial date conversion (Excel epoch is Dec 30, 1899)
+                        parsedDOB = new Date((DOB - 25569) * 86400 * 1000);
+                    } else {
+                        // Try parsing as string - handles multiple formats
+                        const dobStr = DOB.toString().trim();
+
+                        // Try different date formats
+                        if (dobStr.includes('.')) {
+                            // DD.MM.YYYY format
+                            const parts = dobStr.split('.');
+                            if (parts.length === 3) {
+                                parsedDOB = new Date(parts[2], parts[1] - 1, parts[0]);
+                            }
+                        } else if (dobStr.includes('/')) {
+                            // MM/DD/YYYY format
+                            parsedDOB = new Date(dobStr);
+                        } else if (dobStr.includes('-')) {
+                            // YYYY-MM-DD format
+                            parsedDOB = new Date(dobStr);
+                        } else {
+                            parsedDOB = new Date(dobStr);
+                        }
+                    }
+
+                    if (!parsedDOB || isNaN(parsedDOB.getTime())) {
+                        report.failed++;
+                        report.errors.push(`Row ${index + 2}: Invalid Date of Birth format`);
+                        continue;
+                    }
+                }
+
                 // Default values
                 let isVerified = true;
                 if (userRole === 'Alumni') isVerified = false;
 
-                // Create User
-                await User.create({
+                // Create User with all fields
+                const userData = {
                     name: Name,
                     email: Email,
                     password: 'user@123', // Default Password
@@ -271,7 +337,18 @@ const bulkUploadUsers = async (req, res) => {
                     department: DeptName,
                     batchYear: Batch,
                     isVerified
-                });
+                };
+
+                // Add alumni-specific fields if role is Alumni
+                if (userRole === 'Alumni') {
+                    userData.registerNo = RegisterNo;
+                    userData.dateOfBirth = parsedDOB;
+                    userData.fullAddress = FullAddr || '';
+                    userData.bloodGroup = BloodGrp || '';
+                    userData.phoneNumber = Phone;
+                }
+
+                await User.create(userData);
 
                 report.added++;
             } catch (err) {
@@ -287,6 +364,37 @@ const bulkUploadUsers = async (req, res) => {
     }
 };
 
+// @desc    Bulk verify/unverify users
+// @route   POST /api/admin/users/bulk-verify
+// @access  Private/Admin
+const bulkVerifyUsers = async (req, res) => {
+    try {
+        const { userIds, isVerified } = req.body;
+
+        if (!Array.isArray(userIds) || userIds.length === 0) {
+            return res.status(400).json({ message: 'User IDs array is required' });
+        }
+
+        if (typeof isVerified !== 'boolean') {
+            return res.status(400).json({ message: 'Verification status (isVerified) must be a boolean' });
+        }
+
+        // Update all users in the array
+        const result = await User.updateMany(
+            { _id: { $in: userIds } },
+            { $set: { isVerified } }
+        );
+
+        res.json({
+            success: true,
+            modified: result.modifiedCount,
+            message: `${result.modifiedCount} user(s) ${isVerified ? 'verified' : 'unverified'} successfully`
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     createUser,
     getUsers,
@@ -296,5 +404,6 @@ module.exports = {
     getDepartments,
     updateUser,
     deleteUser,
-    bulkUploadUsers
+    bulkUploadUsers,
+    bulkVerifyUsers
 };

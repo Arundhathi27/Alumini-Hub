@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     User, Mail, Phone, MapPin, Briefcase,
     Linkedin, Globe, Award, Edit2, Save, X,
-    CheckCircle, Shield, GraduationCap
+    CheckCircle, Shield, GraduationCap, Calendar, Droplet, Home, CreditCard
 } from 'lucide-react';
 import Sidebar from '../../components/alumni/Sidebar';
 import Topbar from '../../components/alumni/Topbar';
@@ -47,7 +47,13 @@ const ProfilePage = () => {
             skills: data.skills ? data.skills.join(', ') : '',
             linkedin: data.socialLinks?.linkedin || '',
             portfolio: data.socialLinks?.portfolio || '',
-            github: data.socialLinks?.github || ''
+            github: data.socialLinks?.github || '',
+            // New fields from User model
+            registerNo: data.user.registerNo || '',
+            dateOfBirth: data.user.dateOfBirth ? new Date(data.user.dateOfBirth).toISOString().split('T')[0] : '',
+            fullAddress: data.user.fullAddress || '',
+            bloodGroup: data.user.bloodGroup || '',
+            phoneNumber: data.user.phoneNumber || ''
         });
     };
 
@@ -176,6 +182,63 @@ const ProfilePage = () => {
                                 value={formData.about}
                                 onChange={(e) => setFormData({ ...formData, about: e.target.value })}
                                 placeholder="Tell us about yourself..."
+                            />
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label className={styles.label}>Register No.</label>
+                            <input
+                                className={styles.input}
+                                value={formData.registerNo}
+                                onChange={(e) => setFormData({ ...formData, registerNo: e.target.value })}
+                                placeholder="Alumni Registration Number"
+                                readOnly
+                            />
+                        </div>
+                        <div className={styles.formGroup}>
+                            <label className={styles.label}>Date of Birth</label>
+                            <input
+                                type="date"
+                                className={styles.input}
+                                value={formData.dateOfBirth}
+                                onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                            />
+                        </div>
+                        <div className={styles.formGroup}>
+                            <label className={styles.label}>Phone Number</label>
+                            <input
+                                className={styles.input}
+                                value={formData.phoneNumber}
+                                onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                                placeholder="+91 98765 43210"
+                            />
+                        </div>
+                        <div className={styles.formGroup}>
+                            <label className={styles.label}>Blood Group</label>
+                            <select
+                                className={styles.input}
+                                value={formData.bloodGroup}
+                                onChange={(e) => setFormData({ ...formData, bloodGroup: e.target.value })}
+                            >
+                                <option value="">Select Blood Group</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                            </select>
+                        </div>
+                        <div className={`${styles.formGroup} ${styles.fullWidth}`}>
+                            <label className={styles.label}>Full Address</label>
+                            <textarea
+                                className={styles.textarea}
+                                value={formData.fullAddress}
+                                onChange={(e) => setFormData({ ...formData, fullAddress: e.target.value })}
+                                placeholder="Complete address..."
+                                rows="3"
                             />
                         </div>
                         <div className={styles.formGroup}>
@@ -329,6 +392,48 @@ const ProfilePage = () => {
                                 <div>
                                     <div className={styles.detailLabel}>Phone</div>
                                     <div className={styles.detailValue}>{profile.phone || '-'}</div>
+                                </div>
+                            </div>
+
+                            <div className={styles.detailRow}>
+                                <CreditCard className={styles.detailIcon} />
+                                <div>
+                                    <div className={styles.detailLabel}>Register No.</div>
+                                    <div className={styles.detailValue}>{profile.user.registerNo || '-'}</div>
+                                </div>
+                            </div>
+
+                            <div className={styles.detailRow}>
+                                <Calendar className={styles.detailIcon} />
+                                <div>
+                                    <div className={styles.detailLabel}>Date of Birth</div>
+                                    <div className={styles.detailValue}>
+                                        {profile.user.dateOfBirth ? new Date(profile.user.dateOfBirth).toLocaleDateString() : '-'}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className={styles.detailRow}>
+                                <Phone className={styles.detailIcon} />
+                                <div>
+                                    <div className={styles.detailLabel}>Phone Number</div>
+                                    <div className={styles.detailValue}>{profile.user.phoneNumber || '-'}</div>
+                                </div>
+                            </div>
+
+                            <div className={styles.detailRow}>
+                                <Droplet className={styles.detailIcon} />
+                                <div>
+                                    <div className={styles.detailLabel}>Blood Group</div>
+                                    <div className={styles.detailValue}>{profile.user.bloodGroup || '-'}</div>
+                                </div>
+                            </div>
+
+                            <div className={styles.detailRow}>
+                                <Home className={styles.detailIcon} />
+                                <div>
+                                    <div className={styles.detailLabel}>Full Address</div>
+                                    <div className={styles.detailValue}>{profile.user.fullAddress || '-'}</div>
                                 </div>
                             </div>
 

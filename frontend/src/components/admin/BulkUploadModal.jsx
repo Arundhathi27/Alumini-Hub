@@ -41,6 +41,61 @@ const BulkUploadModal = ({ isOpen, onClose, onUpload, role, departments = [] }) 
         // Simple regex for email
         if (row.Email && !/\S+@\S+\.\S/.test(row.Email)) errors.push('Invalid Email Format');
 
+        // Alumni-specific validation
+        if (role === 'Alumni') {
+            if (!row['Register No.'] || !row['Register No.'].toString().trim()) {
+                errors.push('Missing Register No.');
+            }
+            if (!row['Phone Number'] || !row['Phone Number'].toString().trim()) {
+                errors.push('Missing Phone Number');
+            }
+            if (!row['Date of Birth']) {
+                errors.push('Missing Date of Birth');
+            } else {
+                // Handle Excel date formats (can be serial number or string)
+                let dob;
+                const dobValue = row['Date of Birth'];
+
+                // Check if it's an Excel serial date number
+                if (typeof dobValue === 'number') {
+                    // Excel serial date conversion (Excel epoch is Dec 30, 1899)
+                    dob = new Date((dobValue - 25569) * 86400 * 1000);
+                } else {
+                    // Try parsing as string - handles multiple formats
+                    // Excel might export as DD.MM.YYYY, YYYY-MM-DD, or other formats
+                    const dobStr = dobValue.toString().trim();
+
+                    // Try different date formats
+                    if (dobStr.includes('.')) {
+                        // DD.MM.YYYY format
+                        const parts = dobStr.split('.');
+                        if (parts.length === 3) {
+                            dob = new Date(parts[2], parts[1] - 1, parts[0]);
+                        }
+                    } else if (dobStr.includes('/')) {
+                        // MM/DD/YYYY or DD/MM/YYYY format
+                        dob = new Date(dobStr);
+                    } else if (dobStr.includes('-')) {
+                        // YYYY-MM-DD format
+                        dob = new Date(dobStr);
+                    } else {
+                        dob = new Date(dobStr);
+                    }
+                }
+
+                if (!dob || isNaN(dob.getTime())) {
+                    errors.push('Invalid Date of Birth');
+                }
+            }
+            // Blood Group is optional but validate format if provided
+            if (row['Blood Group']) {
+                const validBloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+                if (!validBloodGroups.includes(row['Blood Group'].toString().trim().toUpperCase())) {
+                    errors.push('Invalid Blood Group');
+                }
+            }
+        }
+
         // Department Validation (only if Department column exists or is required)
         if (role === 'Alumni' || role === 'Student') {
             if (!row.Department || !row.Department.toString().trim()) {
@@ -206,7 +261,16 @@ const BulkUploadModal = ({ isOpen, onClose, onUpload, role, departments = [] }) 
                                                 <th>Status</th>
                                                 <th>Name</th>
                                                 <th>Email</th>
+                                                {role === 'Alumni' && (
+                                                    <>
+                                                        <th>Register No.</th>
+                                                        <th>Phone</th>
+                                                        <th>DOB</th>
+                                                        <th>Blood Group</th>
+                                                    </>
+                                                )}
                                                 <th>Department</th>
+                                                <th>Batch</th>
                                                 <th>Error</th>
                                             </tr>
                                         </thead>
@@ -226,7 +290,16 @@ const BulkUploadModal = ({ isOpen, onClose, onUpload, role, departments = [] }) 
                                                     </td>
                                                     <td>{row.Name}</td>
                                                     <td>{row.Email}</td>
+                                                    {role === 'Alumni' && (
+                                                        <>
+                                                            <td>{row['Register No.'] || '-'}</td>
+                                                            <td>{row['Phone Number'] || '-'}</td>
+                                                            <td>{row['Date of Birth'] ? new Date(row['Date of Birth']).toLocaleDateString() : '-'}</td>
+                                                            <td>{row['Blood Group'] || '-'}</td>
+                                                        </>
+                                                    )}
                                                     <td>{row.Department || '-'}</td>
+                                                    <td>{row.Batch || '-'}</td>
                                                     <td style={{ color: '#ef4444' }}>{row.errorMessage}</td>
                                                 </tr>
                                             ))}

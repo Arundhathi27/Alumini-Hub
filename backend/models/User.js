@@ -37,6 +37,26 @@ const userSchema = mongoose.Schema(
             type: String,
             required: false,
         },
+        registerNo: {
+            type: String,
+            required: false,
+        },
+        dateOfBirth: {
+            type: Date,
+            required: false,
+        },
+        fullAddress: {
+            type: String,
+            required: false,
+        },
+        bloodGroup: {
+            type: String,
+            required: false,
+        },
+        phoneNumber: {
+            type: String,
+            required: false,
+        },
     },
     {
         timestamps: true,

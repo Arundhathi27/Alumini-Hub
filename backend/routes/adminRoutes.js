@@ -15,7 +15,8 @@ const {
     getDepartments,
     updateUser,
     deleteUser,
-    bulkUploadUsers
+    bulkUploadUsers,
+    bulkVerifyUsers
 } = require('../controllers/adminController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
@@ -35,5 +36,8 @@ router.get('/departments', getDepartments);
 
 // Bulk Upload Route
 router.post('/bulk-upload', upload.single('file'), bulkUploadUsers);
+
+// Bulk Verify Route
+router.post('/users/bulk-verify', bulkVerifyUsers);
 
 module.exports = router;

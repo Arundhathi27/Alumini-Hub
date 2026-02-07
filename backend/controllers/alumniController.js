@@ -6,7 +6,7 @@ const User = require('../models/User');
 // @access  Private (Alumni only)
 const getProfile = async (req, res) => {
     try {
-        let profile = await AlumniProfile.findOne({ user: req.user._id }).populate('user', 'name email role batchYear department isVerified');
+        let profile = await AlumniProfile.findOne({ user: req.user._id }).populate('user', 'name email role batchYear department isVerified registerNo dateOfBirth fullAddress bloodGroup phoneNumber');
 
         if (!profile) {
             // If profile doesn't exist yet, return structure with user data
