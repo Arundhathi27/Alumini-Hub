@@ -47,11 +47,11 @@ const createJob = async (req, res) => {
         const io = req.app.get('io');
         const adminsAndStaff = await User.find({ role: { $in: ['Admin', 'Staff'] } });
 
-        // Send Email to Staff
-        const staffUsers = adminsAndStaff.filter(u => u.role === 'Staff');
-        const staffEmails = staffUsers.map(u => u.email);
+        // Send Email to Admin Only (Staff Removed)
+        const adminUsers = adminsAndStaff.filter(u => u.role === 'Admin');
+        const adminEmails = adminUsers.map(u => u.email);
 
-        if (staffEmails.length > 0) {
+        if (adminEmails.length > 0) {
             const emailSubject = 'New Job Posting Pending Approval';
             const emailHtml = `
                 <h2>New Pending Job Post</h2>
@@ -61,16 +61,16 @@ const createJob = async (req, res) => {
                     <li><strong>Company:</strong> ${company}</li>
                     <li><strong>Role:</strong> ${role}</li>
                 </ul>
-                <p>Please log in to the Staff Dashboard to review and approve this job.</p>
+                <p>Please log in to the Admin Dashboard to review and verify this job.</p>
                 <p><a href="http://localhost:5173/admin">Go to Dashboard</a></p>
             `;
             // Sending individually to ensure delivery, or could use BCC
-            for (const email of staffEmails) {
+            for (const email of adminEmails) {
                 await sendEmail({ to: email, subject: emailSubject, html: emailHtml });
             }
         }
 
-        for (const admin of adminsAndStaff) {
+        for (const admin of adminUsers) {
             await createNotification(io, {
                 recipientId: admin._id,
                 senderId: req.user._id,
@@ -140,8 +140,8 @@ const updateJobStatus = async (req, res) => {
         await job.save();
 
         if (status === 'Approved') {
-            // Send Email to All Students and Staff
-            const recipients = await User.find({ role: { $in: ['Student', 'Staff'] } });
+            // Send Email to All Students (Staff Removed)
+            const recipients = await User.find({ role: 'Student' });
 
             // To avoid spamming/rate limits, we iterate. In production, use a queue.
             const emailSubject = 'New Job Opportunity Alert!';

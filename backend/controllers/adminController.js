@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Department = require('../models/Department');
 const bcrypt = require('bcryptjs');
 const xlsx = require('xlsx');
+const generateToken = require('../utils/generateToken');
 
 const sendEmail = require('../utils/emailService');
 
@@ -20,7 +21,7 @@ const createUser = async (req, res) => {
 
         // Set default isVerified based on role
         let isVerified = true;
-        if (role === 'Alumni') {
+        if (role === 'Alumni' || role === 'Student' || role === 'Staff') {
             isVerified = false;
         }
 
@@ -36,12 +37,12 @@ const createUser = async (req, res) => {
 
         if (user) {
             // Send Welcome Email
-            const emailSubject = 'Welcome to Alumni Hub - Your Account Details';
+            const emailSubject = `Welcome to Alumni Hub - ${role} Account Details`;
             const emailHtml = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
                 <h2 style="color: #4f46e5; text-align: center;">Welcome to Alumni Hub!</h2>
                 <p>Dear <strong>${name}</strong>,</p>
-                <p>Your account has been successfully created by the administrator.</p>
+                <p>Your <strong>${role}</strong> account has been successfully created by the administrator.</p>
 
                 <div style="background-color: #f3f4f6; padding: 20px; border-radius: 5px; margin: 25px 0; border-left: 5px solid #4f46e5;">
                     <h3 style="margin-top: 0; color: #1f2937; margin-bottom: 15px;">Your Login Credentials</h3>
@@ -101,31 +102,29 @@ const getUsers = async (req, res) => {
     }
 };
 
-// @desc    Verify Alumni
-// @route   PUT /api/admin/verify-alumni/:id
+// @desc    Verify User (Alumni / Student)
+// @route   PUT /api/admin/verify-user/:id
 // @access  Private/Admin
-const verifyAlumni = async (req, res) => {
+const verifyUser = async (req, res) => {
     try {
         const user = await User.findById(req.params.id);
 
         if (user) {
             user.isVerified = req.body.isVerified;
-            // Also reject if isVerified is set to false explicitly? 
-            // Or maybe we treat "Rejected" as isVerified=false?
-            // The prompt says "Approve / Reject Alumni". And "Status (Pending / Verified / Rejected)".
-            // But Schema only has isVerified (boolean). 
-            // Let's assume isVerified=true (Verified), isVerified=false (Pending/Rejected).
-            // For now, toggle verification.
-
             const updatedUser = await user.save();
 
+            // Send Verification Email
             if (updatedUser.isVerified) {
-                const emailSubject = 'Account Verified - Alumni Hub';
-                const emailHtml = `
+                let emailSubject = 'Account Verified - Alumni Hub';
+                let emailHtml = '';
+
+                if (user.role === 'Alumni') {
+                    emailSubject = 'Alumni Account Verified - Alumni Hub';
+                    emailHtml = `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
                         <h2 style="color: #10b981; text-align: center;">Account Verified!</h2>
                         <p>Dear <strong>${user.name}</strong>,</p>
-                        <p>Great news! Your alumni account has been <strong>verified</strong> by the administrator.</p>
+                        <p>Great news! Your <strong>Alumni</strong> account has been <strong>verified</strong> by the administrator.</p>
                         
                         <div style="background-color: #ecfdf5; padding: 20px; border-radius: 5px; margin: 25px 0; border-left: 5px solid #10b981;">
                             <h3 style="margin-top: 0; color: #064e3b; margin-bottom: 15px;">Your Login Credentials</h3>
@@ -149,10 +148,72 @@ const verifyAlumni = async (req, res) => {
                         <p style="font-size: 12px; color: #6b7280; text-align: center;">Thank you for being a valued member of our alumni community.</p>
                     </div>
                 `;
-                await sendEmail({ to: user.email, subject: emailSubject, html: emailHtml });
+                } else if (user.role === 'Student') {
+                    emailSubject = 'Student Account Verified - Alumni Hub';
+                    emailHtml = `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+                        <h2 style="color: #10b981; text-align: center;">Account Verified!</h2>
+                        <p>Dear <strong>${user.name}</strong>,</p>
+                        <p>Great news! Your <strong>Student</strong> account has been <strong>verified</strong> by the administrator.</p>
+                        
+                        <div style="background-color: #ecfdf5; padding: 20px; border-radius: 5px; margin: 25px 0; border-left: 5px solid #10b981;">
+                            <h3 style="margin-top: 0; color: #064e3b; margin-bottom: 15px;">Your Login Credentials</h3>
+                            <p style="margin: 10px 0; font-size: 16px;"><strong>Mail ID:</strong> <span style="color: #374151;">${user.email}</span></p>
+                            <p style="margin: 10px 0; font-size: 16px;"><strong>Password:</strong> <span style="font-family: monospace; background: #e5e7eb; padding: 2px 6px; border-radius: 4px;">user@123</span></p>
+                            <p style="margin: 10px 0; font-size: 14px; color: #6b7280;">(Use this default password if you haven't set one yet)</p>
+                        </div>
+
+                        <p>You now have full access to Student features.</p>
+                        
+                        <div style="text-align: center; margin-top: 30px;">
+                            <a href="http://localhost:5173/login" style="background-color: #10b981; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Access Your Account</a>
+                        </div>
+                         
+                        <hr style="margin-top: 30px; border: none; border-top: 1px solid #e0e0e0;">
+                        <p style="font-size: 12px; color: #6b7280; text-align: center;">Welcome to the community!</p>
+                    </div>
+                `;
+                } else if (user.role === 'Staff') {
+                    emailSubject = 'Staff Account Verified - Alumni Hub';
+                    emailHtml = `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+                        <h2 style="color: #10b981; text-align: center;">Account Verified!</h2>
+                        <p>Dear <strong>${user.name}</strong>,</p>
+                        <p>Your <strong>Staff</strong> account has been <strong>verified</strong> by the administrator.</p>
+                        
+                        <div style="background-color: #ecfdf5; padding: 20px; border-radius: 5px; margin: 25px 0; border-left: 5px solid #10b981;">
+                            <h3 style="margin-top: 0; color: #064e3b; margin-bottom: 15px;">Your Login Credentials</h3>
+                            <p style="margin: 10px 0; font-size: 16px;"><strong>Mail ID:</strong> <span style="color: #374151;">${user.email}</span></p>
+                            <p style="margin: 10px 0; font-size: 16px;"><strong>Password:</strong> <span style="font-family: monospace; background: #e5e7eb; padding: 2px 6px; border-radius: 4px;">user@123</span></p>
+                            <p style="margin: 10px 0; font-size: 14px; color: #6b7280;">(Use this default password if you haven't set one yet)</p>
+                        </div>
+
+                        <p>You now have full access to the Alumni Hub Staff Dashboard.</p>
+                        
+                        <div style="text-align: center; margin-top: 30px;">
+                            <a href="http://localhost:5173/login" style="background-color: #10b981; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Login to Dashboard</a>
+                        </div>
+                         
+                        <hr style="margin-top: 30px; border: none; border-top: 1px solid #e0e0e0;">
+                        <p style="font-size: 12px; color: #6b7280; text-align: center;">Welcome to the Alumni Hub team!</p>
+                    </div>
+                `;
+                }
+
+                if (emailHtml) {
+                    await sendEmail({ to: user.email, subject: emailSubject, html: emailHtml });
+                }
             }
 
-            res.json(updatedUser);
+            res.json({
+                _id: updatedUser._id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                role: updatedUser.role,
+                isVerified: updatedUser.isVerified,
+                token: generateToken(updatedUser._id) // Might not need token here, but keeping it
+            });
+
         } else {
             res.status(404).json({ message: 'User not found' });
         }
@@ -388,7 +449,7 @@ const bulkUploadUsers = async (req, res) => {
 
                 // Default values
                 let isVerified = true;
-                if (userRole === 'Alumni') isVerified = false;
+                if (userRole === 'Alumni' || userRole === 'Student' || userRole === 'Staff') isVerified = false;
 
                 // Create User with all fields
                 const userData = {
@@ -410,7 +471,39 @@ const bulkUploadUsers = async (req, res) => {
                     userData.phoneNumber = Phone;
                 }
 
-                await User.create(userData);
+                const newUser = await User.create(userData);
+
+                // Send Welcome Email
+                const emailSubject = `Welcome to Alumni Hub - ${userRole} Account Details`;
+                const emailHtml = `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+                    <h2 style="color: #4f46e5; text-align: center;">Welcome to Alumni Hub!</h2>
+                    <p>Dear <strong>${Name}</strong>,</p>
+                    <p>Your <strong>${userRole}</strong> account has been successfully created by the administrator.</p>
+
+                    <div style="background-color: #f3f4f6; padding: 20px; border-radius: 5px; margin: 25px 0; border-left: 5px solid #4f46e5;">
+                        <h3 style="margin-top: 0; color: #1f2937; margin-bottom: 15px;">Your Login Credentials</h3>
+                        <p style="margin: 10px 0; font-size: 16px;"><strong>Mail ID:</strong> <span style="color: #374151;">${Email}</span></p>
+                        <p style="margin: 10px 0; font-size: 16px;"><strong>Password:</strong> <span style="font-family: monospace; background: #e5e7eb; padding: 2px 6px; border-radius: 4px;">user@123</span></p>
+                        <p style="margin: 10px 0; font-size: 14px; color: #6b7280;"><strong>Role:</strong> ${userRole}</p>
+                    </div>
+
+                    <p><strong>Next Steps:</strong></p>
+                    <ol>
+                        <li>Login to your account using the credentials above.</li>
+                        <li>Update your profile information.</li>
+                        <li>Change your password for security purposes.</li>
+                    </ol>
+
+                    <div style="text-align: center; margin-top: 30px;">
+                        <a href="http://localhost:5173/login" style="background-color: #4f46e5; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Login to Dashboard</a>
+                    </div>
+
+                    <hr style="margin-top: 30px; border: none; border-top: 1px solid #e0e0e0;">
+                        <p style="font-size: 12px; color: #6b7280; text-align: center;">This is an automated message. Please do not reply to this email.</p>
+                </div>
+                `;
+                await sendEmail({ to: Email, subject: emailSubject, html: emailHtml });
 
                 report.added++;
             } catch (err) {
@@ -426,7 +519,7 @@ const bulkUploadUsers = async (req, res) => {
     }
 };
 
-// @desc    Bulk verify/unverify users
+// @desc    Bulk Verify Users
 // @route   POST /api/admin/users/bulk-verify
 // @access  Private/Admin
 const bulkVerifyUsers = async (req, res) => {
@@ -437,27 +530,25 @@ const bulkVerifyUsers = async (req, res) => {
             return res.status(400).json({ message: 'User IDs array is required' });
         }
 
-        if (typeof isVerified !== 'boolean') {
-            return res.status(400).json({ message: 'Verification status (isVerified) must be a boolean' });
-        }
-
-        // Update all users in the array
         const result = await User.updateMany(
             { _id: { $in: userIds } },
             { $set: { isVerified } }
         );
 
-        // Send emails if verifying
         if (isVerified) {
             const users = await User.find({ _id: { $in: userIds } });
-            const emailSubject = 'Account Verified - Alumni Hub';
 
             for (const user of users) {
-                const emailHtml = `
+                let emailSubject = 'Account Verified - Alumni Hub';
+                let emailHtml = '';
+
+                if (user.role === 'Alumni') {
+                    emailSubject = 'Alumni Account Verified - Alumni Hub';
+                    emailHtml = `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
                         <h2 style="color: #10b981; text-align: center;">Account Verified!</h2>
                         <p>Dear <strong>${user.name}</strong>,</p>
-                        <p>Great news! Your alumni account has been <strong>verified</strong> by the administrator.</p>
+                        <p>Great news! Your <strong>Alumni</strong> account has been <strong>verified</strong> by the administrator.</p>
                         
                         <div style="background-color: #ecfdf5; padding: 20px; border-radius: 5px; margin: 25px 0; border-left: 5px solid #10b981;">
                             <h3 style="margin-top: 0; color: #064e3b; margin-bottom: 15px;">Your Login Credentials</h3>
@@ -481,7 +572,61 @@ const bulkVerifyUsers = async (req, res) => {
                         <p style="font-size: 12px; color: #6b7280; text-align: center;">Thank you for being a valued member of our alumni community.</p>
                     </div>
                 `;
-                await sendEmail({ to: user.email, subject: emailSubject, html: emailHtml });
+                } else if (user.role === 'Student') {
+                    emailSubject = 'Student Account Verified - Alumni Hub';
+                    emailHtml = `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+                        <h2 style="color: #10b981; text-align: center;">Account Verified!</h2>
+                        <p>Dear <strong>${user.name}</strong>,</p>
+                        <p>Great news! Your <strong>Student</strong> account has been <strong>verified</strong> by the administrator.</p>
+                        
+                        <div style="background-color: #ecfdf5; padding: 20px; border-radius: 5px; margin: 25px 0; border-left: 5px solid #10b981;">
+                            <h3 style="margin-top: 0; color: #064e3b; margin-bottom: 15px;">Your Login Credentials</h3>
+                            <p style="margin: 10px 0; font-size: 16px;"><strong>Mail ID:</strong> <span style="color: #374151;">${user.email}</span></p>
+                            <p style="margin: 10px 0; font-size: 16px;"><strong>Password:</strong> <span style="font-family: monospace; background: #e5e7eb; padding: 2px 6px; border-radius: 4px;">user@123</span></p>
+                            <p style="margin: 10px 0; font-size: 14px; color: #6b7280;">(Use this default password if you haven't set one yet)</p>
+                        </div>
+
+                         <p>You now have full access to Student features.</p>
+                        
+                        <div style="text-align: center; margin-top: 30px;">
+                            <a href="http://localhost:5173/login" style="background-color: #10b981; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Access Your Account</a>
+                        </div>
+                        
+                        <hr style="margin-top: 30px; border: none; border-top: 1px solid #e0e0e0;">
+                        <p style="font-size: 12px; color: #6b7280; text-align: center;">Welcome to the community!</p>
+                    </div>
+                `;
+                } else if (user.role === 'Staff') {
+                    emailSubject = 'Staff Account Verified - Alumni Hub';
+                    emailHtml = `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+                        <h2 style="color: #10b981; text-align: center;">Account Verified!</h2>
+                        <p>Dear <strong>${user.name}</strong>,</p>
+                        <p>Your <strong>Staff</strong> account has been <strong>verified</strong> by the administrator.</p>
+                        
+                        <div style="background-color: #ecfdf5; padding: 20px; border-radius: 5px; margin: 25px 0; border-left: 5px solid #10b981;">
+                            <h3 style="margin-top: 0; color: #064e3b; margin-bottom: 15px;">Your Login Credentials</h3>
+                            <p style="margin: 10px 0; font-size: 16px;"><strong>Mail ID:</strong> <span style="color: #374151;">${user.email}</span></p>
+                            <p style="margin: 10px 0; font-size: 16px;"><strong>Password:</strong> <span style="font-family: monospace; background: #e5e7eb; padding: 2px 6px; border-radius: 4px;">user@123</span></p>
+                            <p style="margin: 10px 0; font-size: 14px; color: #6b7280;">(Use this default password if you haven't set one yet)</p>
+                        </div>
+
+                        <p>You now have full access to the Alumni Hub Staff Dashboard.</p>
+                        
+                        <div style="text-align: center; margin-top: 30px;">
+                            <a href="http://localhost:5173/login" style="background-color: #10b981; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Login to Dashboard</a>
+                        </div>
+                         
+                        <hr style="margin-top: 30px; border: none; border-top: 1px solid #e0e0e0;">
+                        <p style="font-size: 12px; color: #6b7280; text-align: center;">Welcome to the Alumni Hub team!</p>
+                    </div>
+                `;
+                }
+
+                if (emailHtml) {
+                    await sendEmail({ to: user.email, subject: emailSubject, html: emailHtml });
+                }
             }
         }
 
@@ -521,7 +666,7 @@ const bulkDeleteUsers = async (req, res) => {
 module.exports = {
     createUser,
     getUsers,
-    verifyAlumni,
+    verifyUser,
     activateUser,
     createDepartment,
     getDepartments,

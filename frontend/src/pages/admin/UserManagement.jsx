@@ -137,8 +137,9 @@ const UserManagement = () => {
     const handleVerify = async (id, status) => {
         if (!window.confirm(`Are you sure you want to ${status ? 'verify' : 'unverify'} this user?`)) return;
         try {
-            await adminService.verifyAlumni(id, status);
+            await adminService.verifyUser(id, status);
             fetchUsers();
+            alert(`User ${status ? 'verified' : 'unverified'} successfully`);
         } catch (error) {
             alert(error.message);
         }
@@ -622,7 +623,7 @@ const UserManagement = () => {
                                         {selectedUsers.length} users selected
                                     </span>
                                     <div style={{ display: 'flex', gap: '10px' }}>
-                                        {activeTab === 'Alumni' && (
+                                        {(activeTab === 'Alumni' || activeTab === 'Student' || activeTab === 'Staff') && (
                                             <>
                                                 <button
                                                     onClick={() => handleBulkVerify(true)}
@@ -753,7 +754,7 @@ const UserManagement = () => {
                                         </th>
                                         <th>Name</th>
                                         <th>Email</th>
-                                        {(activeTab === 'Alumni' || activeTab === 'Student') && <th>Batch / Dept</th>}
+                                        {(activeTab === 'Alumni' || activeTab === 'Student' || activeTab === 'Staff') && <th>Batch / Dept</th>}
                                         <th>Status</th>
                                         <th>Actions</th>
                                     </tr>
@@ -774,12 +775,12 @@ const UserManagement = () => {
                                                     <div className={styles.userName}>{user.name}</div>
                                                 </td>
                                                 <td>{user.email}</td>
-                                                {(activeTab === 'Alumni' || activeTab === 'Student') && (
+                                                {(activeTab === 'Alumni' || activeTab === 'Student' || activeTab === 'Staff') && (
                                                     <td>{user.batchYear || '-'} / {user.department || '-'}</td>
                                                 )}
                                                 <td>
                                                     <div className={styles.badges}>
-                                                        {activeTab === 'Alumni' && (
+                                                        {(activeTab === 'Alumni' || activeTab === 'Student' || activeTab === 'Staff') && (
                                                             <span className={`${styles.badge} ${user.isVerified ? styles.verified : styles.pending}`}>
                                                                 {user.isVerified ? 'Verified' : 'Pending'}
                                                             </span>
@@ -791,10 +792,10 @@ const UserManagement = () => {
                                                 </td>
                                                 <td>
                                                     <div className={styles.actions}>
-                                                        {activeTab === 'Alumni' && !user.isVerified && (
+                                                        {(activeTab === 'Alumni' || activeTab === 'Student' || activeTab === 'Staff') && !user.isVerified && (
                                                             <button
                                                                 className={styles.actionBtn}
-                                                                title="Approve Alumni"
+                                                                title={`Approve ${activeTab}`}
                                                                 onClick={() => handleVerify(user._id, true)}
                                                             >
                                                                 <CheckCircle size={18} className={styles.successIcon} />

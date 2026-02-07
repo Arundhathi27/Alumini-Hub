@@ -9,7 +9,7 @@ const upload = multer({ storage: storage });
 const {
     createUser,
     getUsers,
-    verifyAlumni,
+    verifyUser,
     activateUser,
     createDepartment,
     getDepartments,
@@ -27,7 +27,7 @@ router.use(admin);
 
 router.post('/create-user', createUser);
 router.get('/users', getUsers);
-router.put('/verify-alumni/:id', verifyAlumni);
+router.put('/verify-user/:id', verifyUser);
 router.put('/activate-user/:id', activateUser);
 router.put('/update-user/:id', updateUser);
 router.delete('/delete-user/:id', deleteUser);

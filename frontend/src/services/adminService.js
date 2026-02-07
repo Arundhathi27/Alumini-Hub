@@ -39,15 +39,15 @@ export const adminService = {
         }
     },
 
-    verifyAlumni: async (id, isVerified) => {
+    verifyUser: async (id, isVerified) => {
         try {
-            const response = await fetch(`${API_URL}/verify-alumni/${id}`, {
+            const response = await fetch(`${API_URL}/verify-user/${id}`, {
                 method: 'PUT',
                 headers: getAuthHeaders(),
                 body: JSON.stringify({ isVerified }),
             });
             const data = await response.json();
-            if (!response.ok) throw new Error(data.message || 'Failed to verify alumni');
+            if (!response.ok) throw new Error(data.message || 'Failed to verify user');
             return data;
         } catch (error) {
             throw error;

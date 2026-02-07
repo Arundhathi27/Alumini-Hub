@@ -23,8 +23,15 @@ const sendEmail = async ({ to, subject, html }) => {
         const info = await transporter.sendMail(mailOptions);
         console.log(`[EmailService] Email sent successfully to ${to}. MessageID: ${info.messageId}`);
         return info;
+        return info;
     } catch (error) {
-        console.error('Error sending email:', error);
+        console.error('❌ [EmailService] FATAL ERROR sending email:', error);
+        if (error.response) {
+            console.error('   SMTP Response:', error.response);
+        }
+        if (error.code) {
+            console.error('   Error Code:', error.code);
+        }
         // Don't throw error to prevent blocking the main flow, but log it
         return null;
     }
