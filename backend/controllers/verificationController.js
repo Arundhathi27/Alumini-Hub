@@ -50,13 +50,13 @@ const verifyJob = async (req, res) => {
             relatedId: job._id
         });
 
-        // NOTIFICATION Trigger (Students - Only on Approve)
+        // NOTIFICATION Trigger (Students & Staff - Only on Approve)
         if (action === 'Approve') {
-            const students = await User.find({ role: 'Student' });
-            console.log(`Notifying ${students.length} students about new job: ${job.title}`);
-            for (const student of students) {
+            const usersToNotify = await User.find({ role: { $in: ['Student', 'Staff'] } });
+            console.log(`Notifying ${usersToNotify.length} users (Students & Staff) about new job: ${job.title}`);
+            for (const user of usersToNotify) {
                 await createNotification(io, {
-                    recipientId: student._id,
+                    recipientId: user._id,
                     type: 'job_alert',
                     title: 'New Job Opportunity',
                     message: `A new job "${job.title}" at ${job.company} has been posted.`,
@@ -146,12 +146,12 @@ const verifyEvent = async (req, res) => {
             relatedId: event._id
         });
 
-        // NOTIFICATION Trigger (Students - Only on Approve)
+        // NOTIFICATION Trigger (Students & Staff - Only on Approve)
         if (action === 'Approve') {
-            const students = await User.find({ role: 'Student' });
-            console.log(`Notifying ${students.length} students about new event: ${event.title}`);
+            const usersToNotify = await User.find({ role: { $in: ['Student', 'Staff'] } });
+            console.log(`Notifying ${usersToNotify.length} users (Students & Staff) about new event: ${event.title}`);
 
-            // Send Email to All Students
+            // Send Email to All Students & Staff
             const emailSubject = 'New Event Alert!';
             const emailHtml = `
                 <h2>New Event: ${event.title}</h2>
@@ -167,10 +167,10 @@ const verifyEvent = async (req, res) => {
                 <p><a href="http://localhost:5173/login">Go to Login</a></p>
             `;
 
-            for (const student of students) {
+            for (const user of usersToNotify) {
                 // Send In-App Notification
                 await createNotification(io, {
-                    recipientId: student._id,
+                    recipientId: user._id,
                     type: 'event_alert',
                     title: 'New Event',
                     message: `A new event "${event.title}" has been scheduled. Check it out!`,
@@ -178,7 +178,7 @@ const verifyEvent = async (req, res) => {
                 });
 
                 // Send Email
-                await sendEmail({ to: student.email, subject: emailSubject, html: emailHtml });
+                await sendEmail({ to: user.email, subject: emailSubject, html: emailHtml });
             }
         }
 

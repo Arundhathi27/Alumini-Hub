@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { adminEventService } from '../../services/adminEventService';
+import { useNotifications } from '../../context/NotificationContext';
 import styles from '../alumni/AlumniDashboard.module.css'; // Reuse existing styles
 import { Check, X, Calendar } from 'lucide-react';
 
 const EventApprovals = () => {
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { markByTypeAsRead } = useNotifications();
 
     useEffect(() => {
+        markByTypeAsRead('event_status');
         fetchPendingEvents();
     }, []);
 

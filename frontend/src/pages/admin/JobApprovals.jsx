@@ -2,13 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Check, X, Eye } from 'lucide-react';
 import dashboardStyles from '../alumni/AlumniDashboard.module.css'; // Use shared styles
 import { adminJobService } from '../../services/adminJobService';
+import { useNotifications } from '../../context/NotificationContext';
 
 const JobApprovals = () => {
     const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('Pending');
+    const { markByTypeAsRead } = useNotifications();
 
     useEffect(() => {
+        markByTypeAsRead('job_status');
         fetchJobs();
     }, [filter]);
 

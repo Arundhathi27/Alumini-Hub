@@ -140,8 +140,13 @@ const updateJobStatus = async (req, res) => {
         await job.save();
 
         if (status === 'Approved') {
-            // Send Email to All Students (Staff Removed)
-            const recipients = await User.find({ role: 'Student' });
+            // Get socket.io instance
+            const io = req.app.get('io');
+
+            // Send In-App Notifications and Emails to All Students AND Staff
+            const recipients = await User.find({ role: { $in: ['Student', 'Staff'] } });
+
+            console.log(`[updateJobStatus] Notifying ${recipients.length} users (Students & Staff) about approved job: ${job.title}`);
 
             // To avoid spamming/rate limits, we iterate. In production, use a queue.
             const emailSubject = 'New Job Opportunity Alert!';
@@ -159,6 +164,16 @@ const updateJobStatus = async (req, res) => {
             `;
 
             for (const user of recipients) {
+                // Send In-App Notification
+                await createNotification(io, {
+                    recipientId: user._id,
+                    type: 'job_alert',
+                    title: 'New Job Opportunity',
+                    message: `A new job "${job.title}" at ${job.company} has been posted.`,
+                    relatedId: job._id
+                });
+
+                // Send Email
                 await sendEmail({ to: user.email, subject: emailSubject, html: emailHtml });
             }
         }

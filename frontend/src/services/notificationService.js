@@ -34,6 +34,12 @@ const notificationService = {
     markAllAsRead: async () => {
         const response = await axios.put(`${API_URL}/read-all`, {}, getAuthHeader());
         return response.data;
+    },
+
+    // Mark by type as read
+    markByTypeAsRead: async (type) => {
+        const response = await axios.put(`${API_URL}/mark-type-read`, { type }, getAuthHeader());
+        return response.data;
     }
 };
 

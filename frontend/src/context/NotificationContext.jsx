@@ -100,6 +100,25 @@ export const NotificationProvider = ({ children }) => {
         }
     };
 
+    const markByTypeAsRead = async (type) => {
+        try {
+            // Optimistic update
+            const updated = notifications.map(n =>
+                n.type === type ? { ...n, isRead: true } : n
+            );
+
+            // Calculate count decrease
+            const countMarked = notifications.filter(n => n.type === type && !n.isRead).length;
+
+            setNotifications(updated);
+            setUnreadCount(prev => Math.max(0, prev - countMarked));
+
+            await notificationService.markByTypeAsRead(type);
+        } catch (error) {
+            console.error(`Failed to mark type ${type} as read:`, error);
+        }
+    };
+
     return (
         <NotificationContext.Provider value={{
             notifications,
@@ -108,6 +127,7 @@ export const NotificationProvider = ({ children }) => {
             markAsRead,
             markRelatedAsRead,
             markAllAsRead,
+            markByTypeAsRead,
             loadNotifications
         }}>
             {children}

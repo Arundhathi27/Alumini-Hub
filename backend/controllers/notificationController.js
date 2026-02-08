@@ -88,9 +88,33 @@ const markAllAsRead = async (req, res) => {
     }
 };
 
+// @desc    Mark all notifications of a specific type as read
+// @route   PUT /api/notifications/mark-type-read
+// @access  Private
+const markByTypeAsRead = async (req, res) => {
+    try {
+        const { type } = req.body;
+
+        if (!type) {
+            return res.status(400).json({ message: 'Notification type is required' });
+        }
+
+        await Notification.updateMany(
+            { recipientId: req.user._id, type: type, isRead: false },
+            { $set: { isRead: true } }
+        );
+
+        res.json({ message: `All ${type} notifications marked as read` });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
 // Helper function to create notification (Internal use)
 const createNotification = async (io, { recipientId, senderId, type, title, message, relatedId }) => {
     try {
+        console.log(`[createNotification] Creating notification for user: ${recipientId}, type: ${type}`);
         const notification = await Notification.create({
             recipientId,
             senderId,
@@ -99,12 +123,16 @@ const createNotification = async (io, { recipientId, senderId, type, title, mess
             message,
             relatedId
         });
+        console.log(`[createNotification] Notification saved to DB: ${notification._id}`);
 
         // Emit socket event if io is provided
         if (io) {
-            // Find socket(s) for this user
-            // Assuming room pattern: `user:${userId}` as seen in socketHandler.js
-            io.to(`user:${recipientId}`).emit('notification:new', notification);
+            const roomName = `user:${recipientId}`;
+            console.log(`[createNotification] Emitting to room: ${roomName}`);
+            io.to(roomName).emit('notification:new', notification);
+            console.log(`[createNotification] Emit complete`);
+        } else {
+            console.log(`[createNotification] WARNING: io is null/undefined, socket emit skipped!`);
         }
 
         return notification;
@@ -118,5 +146,6 @@ module.exports = {
     markAsRead,
     markAllAsRead,
     markRelatedNotificationsRead,
+    markByTypeAsRead,
     createNotification
 };
