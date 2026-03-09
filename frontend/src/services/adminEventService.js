@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/events';
+const API_URL = 'http://localhost:5001/api/events';
 
 const getAuthHeader = () => {
     const user = JSON.parse(localStorage.getItem('user'));
@@ -26,7 +26,16 @@ const verifyEvent = async (eventId, action) => {
     return response.data;
 };
 
+const createAdminEvent = async (eventData) => {
+    const config = {
+        headers: getAuthHeader()
+    };
+    const response = await axios.post('http://localhost:5001/api/admin/events/admin-create', eventData, config);
+    return response.data;
+};
+
 export const adminEventService = {
     getPendingEvents,
-    verifyEvent
+    verifyEvent,
+    createAdminEvent
 };

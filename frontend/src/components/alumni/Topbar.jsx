@@ -1,20 +1,44 @@
 import React from 'react';
-import { User } from 'lucide-react';
+import { Search } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import styles from '../../pages/alumni/AlumniDashboard.module.css';
 import NotificationManager from '../notifications/NotificationManager';
+import { useAuth } from '../../context/AuthContext';
+
+const breadcrumbMap = {
+    '/alumni/dashboard': 'Dashboard',
+    '/alumni/jobs/my-jobs': 'My Jobs',
+    '/alumni/events/my-events': 'My Events',
+    '/alumni/profile': 'Profile',
+    '/alumni/posts': 'My Posts',
+    '/alumni/messages': 'Messages',
+    '/alumni/post-job': 'Post Job',
+    '/alumni/post-event': 'Post Event',
+};
 
 const Topbar = ({ title }) => {
+    const location = useLocation();
+    const { user } = useAuth();
+    const currentPage = breadcrumbMap[location.pathname] || title;
+    const initial = user?.name?.charAt(0)?.toUpperCase() || 'A';
+
     return (
         <header className={styles.topbar}>
-            <h2 className={styles.pageTitle}>{title}</h2>
+            <div className={styles.breadcrumb}>
+                <span className={styles.breadcrumbLink}>Application</span>
+                <span className={styles.breadcrumbSep}>›</span>
+                <span className={styles.breadcrumbCurrent}>{currentPage}</span>
+            </div>
 
             <div className={styles.profileSection}>
+                <div className={styles.searchBar}>
+                    <Search size={14} style={{ color: '#9ca3af', flexShrink: 0 }} />
+                    <input className={styles.searchBarInput} placeholder="Search..." type="text" />
+                </div>
                 <NotificationManager />
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <div className={styles.iconButton} style={{ background: '#e0e7ff', color: '#4f46e5' }}>
-                        <User size={20} />
-                    </div>
-                    <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#374151' }}>Alumni User</span>
+                    <div className={styles.avatar}>{initial}</div>
+                    <span className={styles.avatarName}>{user?.name || 'Alumni'}</span>
                 </div>
             </div>
         </header>

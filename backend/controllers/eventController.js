@@ -149,8 +149,68 @@ const updateEvent = async (req, res) => {
     }
 };
 
+// @desc    Create a new event directly as Admin (auto-approved)
+// @route   POST /api/admin/events
+// @access  Private (Admin Only)
+const adminCreateEvent = async (req, res) => {
+    try {
+        const {
+            title,
+            type,
+            description,
+            date,
+            time,
+            mode,
+            location,
+            link
+        } = req.body;
+
+        if (!title || !type || !description || !date || !time || !mode) {
+            return res.status(400).json({ message: 'Please fill all required fields' });
+        }
+
+        if (mode === 'Offline' && !location) {
+            return res.status(400).json({ message: 'Location is required for offline events' });
+        }
+
+        const event = await Event.create({
+            title,
+            type,
+            description,
+            date,
+            time,
+            mode,
+            location: mode === 'Offline' ? location : 'Online',
+            link,
+            postedBy: req.user._id,
+            status: 'Approved'  // Admin-created events are auto-approved
+        });
+
+        // Notify all users about the new event
+        const io = req.app.get('io');
+        const allUsers = await User.find({ role: { $in: ['Alumni', 'Student', 'Staff'] } });
+
+        for (const user of allUsers) {
+            await createNotification(io, {
+                recipientId: user._id,
+                senderId: req.user._id,
+                type: 'event_status',
+                title: 'New Event Posted',
+                message: `Admin posted a new event: "${event.title}". Check it out!`,
+                relatedId: event._id
+            });
+        }
+
+        res.status(201).json(event);
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     createEvent,
     getMyEvents,
-    updateEvent
+    updateEvent,
+    adminCreateEvent
 };

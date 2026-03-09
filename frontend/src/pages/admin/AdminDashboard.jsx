@@ -7,6 +7,7 @@ import UserManagement from './UserManagement';
 import DepartmentManagement from './DepartmentManagement';
 import JobApprovals from './JobApprovals';
 import EventApprovals from './EventApprovals';
+import AdminPostEvent from './AdminPostEvent';
 import AdminAlumniDirectory from './AdminAlumniDirectory';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import styles from './AdminDashboard.module.css';
@@ -29,6 +30,7 @@ const AdminDashboard = () => {
                         <Route path="alumni-directory" element={<AdminAlumniDirectory />} />
                         <Route path="jobs" element={<JobApprovals />} />
                         <Route path="event-approvals" element={<EventApprovals />} />
+                        <Route path="post-event" element={<AdminPostEvent />} />
                         <Route path="analytics" element={<AnalyticsDashboard />} />
                     </Routes>
                 </main>

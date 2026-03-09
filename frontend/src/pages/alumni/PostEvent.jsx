@@ -35,7 +35,7 @@ const PostEvent = () => {
         try {
             await eventService.createEvent(formData);
             alert('Event posted successfully! It is pending approval.');
-            navigate('/alumni/my-events');
+            navigate('/alumni/events/my-events');
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to post event');
         } finally {

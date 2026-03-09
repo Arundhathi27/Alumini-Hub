@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/events';
+const API_URL = 'http://localhost:5001/api/events';
 
 const getApprovedEvents = async (filters = {}) => {
     const user = JSON.parse(localStorage.getItem('user'));

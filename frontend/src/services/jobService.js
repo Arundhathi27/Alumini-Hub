@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/alumni/jobs';
+const API_URL = 'http://localhost:5001/api/alumni/jobs';
 
 const getMyJobs = async () => {
     const user = JSON.parse(localStorage.getItem('user'));

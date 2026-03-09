@@ -26,34 +26,42 @@ const Sidebar = () => {
         { icon: Briefcase, label: 'Jobs', path: '/student/jobs' },
         { icon: Calendar, label: 'Events', path: '/student/events' },
         { icon: Users, label: 'Alumni Directory', path: '/student/alumni' },
-        { icon: MessageCircle, label: 'Messages', path: '/student/messages' }
+        { icon: MessageCircle, label: 'Messages', path: '/student/messages' },
     ];
 
     return (
         <aside className={styles.sidebar}>
             <div className={styles.logoContainer}>
-                <Award size={24} color="#38bdf8" />
-                <span className={styles.logoText}>Alumni Hub</span>
+                <Award size={26} style={{ color: '#93c5fd', flexShrink: 0 }} />
+                <div>
+                    <span className={styles.logoText}>Alumni Hub</span>
+                    <span className={styles.roleBadgeStudent}>Student</span>
+                </div>
             </div>
 
             <nav className={styles.nav}>
+                <span className={styles.navSection}>Main Menu</span>
+
                 {navItems.map((item) => (
                     <NavLink
                         key={item.path}
                         to={item.path}
                         className={({ isActive }) =>
-                            isActive ? `${styles.navItem} ${styles.navItemActive} ` : styles.navItem
+                            isActive
+                                ? `${styles.navItem} ${styles.navItemActive}`
+                                : styles.navItem
                         }
                     >
-                        <item.icon size={18} style={{ marginRight: '0.75rem' }} />
+                        <item.icon size={17} />
                         {item.label}
                     </NavLink>
                 ))}
 
-                <div style={{ flex: 1 }}></div>
+                <div style={{ flex: 1 }} />
+                <div className={styles.navDivider} />
 
-                <button onClick={handleLogout} className={styles.navItem} style={{ border: 'none', background: 'transparent', width: '100%' }}>
-                    <LogOut size={18} style={{ marginRight: '0.75rem' }} />
+                <button onClick={handleLogout} className={styles.navItem}>
+                    <LogOut size={17} />
                     Logout
                 </button>
             </nav>

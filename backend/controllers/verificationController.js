@@ -136,50 +136,58 @@ const verifyEvent = async (req, res) => {
         event.status = action === 'Approve' ? 'Approved' : 'Rejected';
         await event.save();
 
-        // NOTIFICATION Trigger (Alumni)
-        const io = req.app.get('io');
-        await createNotification(io, {
-            recipientId: event.postedBy,
-            type: 'event_status',
-            title: `Event ${action}d`,
-            message: `Your event "${event.title}" has been ${action.toLowerCase()}d.`,
-            relatedId: event._id
-        });
+        try {
+            // NOTIFICATION Trigger (Alumni)
+            const io = req.app.get('io');
+            await createNotification(io, {
+                recipientId: event.postedBy,
+                type: 'event_status',
+                title: `Event ${action}d`,
+                message: `Your event "${event.title}" has been ${action.toLowerCase()}d.`,
+                relatedId: event._id
+            });
 
-        // NOTIFICATION Trigger (Students & Staff - Only on Approve)
-        if (action === 'Approve') {
-            const usersToNotify = await User.find({ role: { $in: ['Student', 'Staff'] } });
-            console.log(`Notifying ${usersToNotify.length} users (Students & Staff) about new event: ${event.title}`);
+            // NOTIFICATION Trigger (Students & Staff - Only on Approve)
+            if (action === 'Approve') {
+                const usersToNotify = await User.find({ role: { $in: ['Student', 'Staff'] } });
+                console.log(`Notifying ${usersToNotify.length} users (Students & Staff) about new event: ${event.title}`);
 
-            // Send Email to All Students & Staff
-            const emailSubject = 'New Event Alert!';
-            const emailHtml = `
-                <h2>New Event: ${event.title}</h2>
-                <p>A new event has been scheduled. Check it out!</p>
-                <ul>
-                    <li><strong>Title:</strong> ${event.title}</li>
-                    <li><strong>Type:</strong> ${event.type}</li>
-                    <li><strong>Date:</strong> ${new Date(event.date).toLocaleDateString()}</li>
-                    <li><strong>Time:</strong> ${event.time}</li>
-                    <li><strong>Mode:</strong> ${event.mode}</li>
-                </ul>
-                <p>Log in to the portal for more details.</p>
-                <p><a href="http://localhost:5173/login">Go to Login</a></p>
-            `;
+                // Send Email to All Students & Staff
+                const emailSubject = 'New Event Alert!';
+                const emailHtml = `
+                    <h2>New Event: ${event.title}</h2>
+                    <p>A new event has been scheduled. Check it out!</p>
+                    <ul>
+                        <li><strong>Title:</strong> ${event.title}</li>
+                        <li><strong>Type:</strong> ${event.type}</li>
+                        <li><strong>Date:</strong> ${new Date(event.date).toLocaleDateString()}</li>
+                        <li><strong>Time:</strong> ${event.time}</li>
+                        <li><strong>Mode:</strong> ${event.mode}</li>
+                    </ul>
+                    <p>Log in to the portal for more details.</p>
+                    <p><a href="http://localhost:5173/login">Go to Login</a></p>
+                `;
 
-            for (const user of usersToNotify) {
-                // Send In-App Notification
-                await createNotification(io, {
-                    recipientId: user._id,
-                    type: 'event_alert',
-                    title: 'New Event',
-                    message: `A new event "${event.title}" has been scheduled. Check it out!`,
-                    relatedId: event._id
-                });
+                for (const user of usersToNotify) {
+                    // Send In-App Notification
+                    await createNotification(io, {
+                        recipientId: user._id,
+                        type: 'event_alert',
+                        title: 'New Event',
+                        message: `A new event "${event.title}" has been scheduled. Check it out!`,
+                        relatedId: event._id
+                    });
 
-                // Send Email
-                await sendEmail({ to: user.email, subject: emailSubject, html: emailHtml });
+                    // Send Email
+                    try {
+                        await sendEmail({ to: user.email, subject: emailSubject, html: emailHtml });
+                    } catch (emailErr) {
+                        console.error(`Failed to send email to ${user.email}:`, emailErr.message);
+                    }
+                }
             }
+        } catch (notifErr) {
+            console.error('Error sending event notifications:', notifErr.message);
         }
 
         res.json(event);

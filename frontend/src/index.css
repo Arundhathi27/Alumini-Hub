@@ -1,37 +1,61 @@
+/* ─── Design Tokens ─────────────────────────────── */
 :root {
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  --font-base: 'Inter', system-ui, -apple-system, sans-serif;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  /* Brand Indigo Palette */
+  --color-primary: #4f46e5;
+  --color-primary-hover: #4338ca;
+  --color-sidebar-bg: #312e81;
+  --color-sidebar-active: #6366f1;
+  --color-sidebar-hover: rgba(255, 255, 255, 0.1);
+  --color-sidebar-text: rgba(255, 255, 255, 0.75);
+  --color-sidebar-text-active: #ffffff;
 
+  /* Layout */
+  --color-page-bg: #f0f4fb;
+  --color-card-bg: #ffffff;
+  --color-topbar-bg: #ffffff;
+  --color-border: #e5e7eb;
+
+  /* Text */
+  --color-text-primary: #111827;
+  --color-text-secondary: #6b7280;
+  --color-text-muted: #9ca3af;
+
+  /* Status */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #3b82f6;
+
+  font-family: var(--font-base);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-body {
+/* ─── Reset ─────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
   margin: 0;
+  padding: 0;
+}
+
+body {
   min-width: 320px;
   min-height: 100vh;
   width: 100%;
+  background-color: var(--color-page-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-base);
 }
 
-/* Light mode override for this project as per request (Professional academic/corporate look usually implies light clean, but dark is optional. Request asked for "Professional color palette (blue / indigo / neutral tones)". 
-I will set a light theme as default for the login page specifically via the component, 
-but let's reset body to ensure no weird dark mode defaults from Vite interfere. */
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-}
-
-* {
-  box-sizing: border-box;
+a {
+  text-decoration: none;
+  color: inherit;
 }
 
 h1,
@@ -41,4 +65,29 @@ h4,
 h5,
 h6 {
   margin: 0;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+button {
+  cursor: pointer;
+  font-family: var(--font-base);
+}
+
+/* ─── Scrollbar ─────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
 }

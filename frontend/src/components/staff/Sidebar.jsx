@@ -5,10 +5,9 @@ import {
     Users,
     CheckCircle,
     Calendar,
-    Briefcase,
+    MessageCircle,
     LogOut,
-    Award,
-    MessageCircle
+    Award
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import styles from '../../pages/staff/StaffDashboard.module.css';
@@ -28,34 +27,42 @@ const Sidebar = () => {
         { icon: CheckCircle, label: 'Event Approvals', path: '/staff/event-approvals' },
         { icon: Calendar, label: 'Events', path: '/staff/events' },
         { icon: Users, label: 'Alumni Directory', path: '/staff/alumni' },
-        { icon: MessageCircle, label: 'Messages', path: '/staff/messages' }
+        { icon: MessageCircle, label: 'Messages', path: '/staff/messages' },
     ];
 
     return (
         <aside className={styles.sidebar}>
             <div className={styles.logoContainer}>
-                <Award size={24} color="#10b981" />
-                <span className={styles.logoText}>Alumni Hub</span>
+                <Award size={26} style={{ color: '#93c5fd', flexShrink: 0 }} />
+                <div>
+                    <span className={styles.logoText}>Alumni Hub</span>
+                    <span className={styles.roleBadgeStaff}>Staff</span>
+                </div>
             </div>
 
             <nav className={styles.nav}>
+                <span className={styles.navSection}>Main Menu</span>
+
                 {navItems.map((item) => (
                     <NavLink
                         key={item.path}
                         to={item.path}
                         className={({ isActive }) =>
-                            isActive ? `${styles.navItem} ${styles.navItemActive}` : styles.navItem
+                            isActive
+                                ? `${styles.navItem} ${styles.navItemActive}`
+                                : styles.navItem
                         }
                     >
-                        <item.icon size={18} style={{ marginRight: '0.75rem' }} />
+                        <item.icon size={17} />
                         {item.label}
                     </NavLink>
                 ))}
 
-                <div style={{ flex: 1 }}></div>
+                <div style={{ flex: 1 }} />
+                <div className={styles.navDivider} />
 
-                <button onClick={handleLogout} className={styles.navItem} style={{ border: 'none', background: 'transparent', width: '100%' }}>
-                    <LogOut size={18} style={{ marginRight: '0.75rem' }} />
+                <button onClick={handleLogout} className={styles.navItem}>
+                    <LogOut size={17} />
                     Logout
                 </button>
             </nav>

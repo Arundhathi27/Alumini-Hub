@@ -306,6 +306,13 @@ const UserManagement = () => {
 
             return matchesSearch && matchesVerification && matchesActive && matchesDepartment && matchesBatch;
         });
+
+        // Sort by registerNo in ascending order
+        return filtered.sort((a, b) => {
+            const regA = a.registerNo || '';
+            const regB = b.registerNo || '';
+            return regA.localeCompare(regB, undefined, { numeric: true, sensitivity: 'base' });
+        });
     };
 
     const filteredUsers = getFilteredUsers();

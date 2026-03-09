@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/alumni/jobs';
-const JOB_API_URL = 'http://localhost:5000/api/jobs'; // New Verification API
+const API_URL = 'http://localhost:5001/api/alumni/jobs';
+const JOB_API_URL = 'http://localhost:5001/api/jobs'; // New Verification API
 
 const getAuthHeader = () => {
     const user = JSON.parse(localStorage.getItem('user'));

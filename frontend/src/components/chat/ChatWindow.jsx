@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNotifications } from '../../context/NotificationContext';
-import { Send, Check, CheckCheck, MoreVertical, Phone, Video } from 'lucide-react';
+import { Send, Check, CheckCheck } from 'lucide-react';
 import { chatService } from '../../services/chatService';
 import socketService from '../../services/socketService';
 import Avatar from './Avatar';
@@ -127,7 +127,16 @@ const ChatWindow = ({ conversation, currentUserId }) => {
     }
 
     return (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', background: '#fff' }}>
+        <div style={{
+            /* height:100% fills the bounded flex wrapper in Messages components.
+               display:flex + flexDirection:column makes header/messages/input stack properly.
+               overflow:hidden clips the children — only the messages div scrolls. */
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            background: '#fff',
+        }}>
             {/* Chat Header */}
             <div style={{
                 padding: '1rem 1.5rem',
@@ -165,18 +174,7 @@ const ChatWindow = ({ conversation, currentUserId }) => {
                     </div>
                 </div>
 
-                {/* Header Actions (Visual Only) */}
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button style={{ padding: '0.5rem', background: 'transparent', border: 'none', cursor: 'pointer', color: '#6b7280', borderRadius: '50%' }}>
-                        <Phone size={20} />
-                    </button>
-                    <button style={{ padding: '0.5rem', background: 'transparent', border: 'none', cursor: 'pointer', color: '#6b7280', borderRadius: '50%' }}>
-                        <Video size={20} />
-                    </button>
-                    <button style={{ padding: '0.5rem', background: 'transparent', border: 'none', cursor: 'pointer', color: '#6b7280', borderRadius: '50%' }}>
-                        <MoreVertical size={20} />
-                    </button>
-                </div>
+
             </div>
 
             {/* Messages Area */}

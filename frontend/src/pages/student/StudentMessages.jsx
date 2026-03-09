@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { UserPlus } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { MessageSquare, UserPlus } from 'lucide-react';
 import { chatService } from '../../services/chatService';
 import socketService from '../../services/socketService';
 import ConversationList from '../../components/chat/ConversationList';
@@ -14,14 +15,9 @@ const StudentMessages = () => {
     const currentUser = JSON.parse(localStorage.getItem('user'));
 
     useEffect(() => {
-        // Connect socket
         socketService.connect(currentUser.token);
-
         loadConversations();
-
-        return () => {
-            socketService.disconnect();
-        };
+        return () => { socketService.disconnect(); };
     }, []);
 
     const loadConversations = async () => {
@@ -36,50 +32,84 @@ const StudentMessages = () => {
         }
     };
 
+    /*
+     * LAYOUT: negative margin escapes the parent .content padding.
+     * height: calc(100vh - 68px) = viewport minus topbar.
+     * overflow: hidden so only inner chat list scrolls, nothing else.
+     */
     return (
-        <div style={{ padding: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <h1 style={{ fontSize: '1.875rem', fontWeight: 700, color: '#111827' }}>
-                    Messages
-                </h1>
-                <button
-                    onClick={() => setShowNewChatModal(true)}
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        padding: '0.75rem 1.5rem',
-                        background: '#4f46e5',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '0.5rem',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        transition: 'background 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = '#4338ca'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = '#4f46e5'}
-                >
-                    <UserPlus size={18} />
-                    Start New Chat
-                </button>
+        <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            margin: '-1.75rem -2rem',
+            height: 'calc(100vh - 68px)',
+            minHeight: 0,
+            overflow: 'hidden',
+            boxSizing: 'border-box',
+        }}>
+
+            {/* ── Top header (has padding) ── */}
+            <div style={{ padding: '1.25rem 2rem 0.875rem', flexShrink: 0, background: '#f0f4fb' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                        <div style={{ width: 34, height: 34, background: '#eff6ff', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <MessageSquare size={17} color="#2563eb" />
+                        </div>
+                        <div>
+                            <h2 style={{ fontSize: '1.375rem', fontWeight: 800, color: '#111827', letterSpacing: '-0.4px' }}>
+                                Messages
+                            </h2>
+                            <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '0.1rem' }}>
+                                {conversations.length} conversation{conversations.length !== 1 ? 's' : ''}
+                            </p>
+                        </div>
+                    </div>
+
+                    <motion.button
+                        whileHover={{ scale: 1.03, y: -1 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => setShowNewChatModal(true)}
+                        style={{
+                            display: 'flex', alignItems: 'center', gap: '0.5rem',
+                            padding: '0.5rem 1.125rem',
+                            background: 'linear-gradient(135deg,#2563eb,#3b82f6)',
+                            color: '#fff', border: 'none', borderRadius: '0.625rem',
+                            fontWeight: 600, fontSize: '0.8125rem', cursor: 'pointer',
+                            boxShadow: '0 4px 12px rgba(37,99,235,0.3)',
+                        }}
+                    >
+                        <UserPlus size={15} /> New Chat
+                    </motion.button>
+                </div>
             </div>
 
+            {/* ── Chat area — flex row so children get bounded heights ── */}
             <div style={{
-                display: 'grid',
-                gridTemplateColumns: '350px 1fr',
-                gap: '1.5rem',
-                height: '75vh', // Fixed height relative to viewport
-                background: 'white',
-                borderRadius: '0.5rem',
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                overflow: 'hidden'
+                flex: 1,
+                minHeight: 0,
+                display: 'flex',
+                flexDirection: 'row',
+                background: '#fff',
+                borderTop: '1px solid #e5e7eb',
+                overflow: 'hidden',
             }}>
-                {/* Conversations List */}
-                <div style={{ borderRight: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                {/* Conversation list */}
+                <div style={{
+                    width: 300,
+                    flexShrink: 0,
+                    borderRight: '1px solid #e5e7eb',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflow: 'hidden',
+                    minHeight: 0,
+                }}>
                     {loading ? (
-                        <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
-                            Loading conversations...
+                        <div style={{ padding: '2rem', textAlign: 'center' }}>
+                            <motion.div
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                                style={{ width: 24, height: 24, border: '3px solid #e5e7eb', borderTopColor: '#2563eb', borderRadius: '50%', margin: '0 auto' }}
+                            />
                         </div>
                     ) : (
                         <ConversationList
@@ -91,14 +121,15 @@ const StudentMessages = () => {
                     )}
                 </div>
 
-                {/* Chat Window */}
-                <ChatWindow
-                    conversation={selectedConversation}
-                    currentUserId={currentUser._id}
-                />
+                {/* Chat window wrapper — bounded flex child so only messages scroll */}
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
+                    <ChatWindow
+                        conversation={selectedConversation}
+                        currentUserId={currentUser._id}
+                    />
+                </div>
             </div>
 
-            {/* Start New Chat Modal */}
             <StartNewChatModal
                 isOpen={showNewChatModal}
                 onClose={() => setShowNewChatModal(false)}

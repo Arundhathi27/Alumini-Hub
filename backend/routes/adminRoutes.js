@@ -19,6 +19,7 @@ const {
     bulkVerifyUsers,
     bulkDeleteUsers
 } = require('../controllers/adminController');
+const { adminCreateEvent } = require('../controllers/eventController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
 // All routes are protected and admin-only
@@ -43,5 +44,8 @@ router.post('/users/bulk-verify', bulkVerifyUsers);
 
 // Bulk Delete Route
 router.delete('/users/bulk-delete', bulkDeleteUsers);
+
+// Admin Direct Event Creation (no approval needed)
+router.post('/events/admin-create', adminCreateEvent);
 
 module.exports = router;

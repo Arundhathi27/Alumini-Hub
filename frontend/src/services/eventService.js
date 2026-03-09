@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/alumni/events';
+const API_URL = 'http://localhost:5001/api/alumni/events';
 
 const getAuthHeader = () => {
     const user = JSON.parse(localStorage.getItem('user'));
